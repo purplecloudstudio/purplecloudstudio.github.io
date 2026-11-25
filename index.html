@@ -511,7 +511,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 let ac=null;
 function blip(f=660){if(!$('#sfx').checked)return;try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(ac.destination);o.start();o.frequency.setValueAtTime(f*1.5,ac.currentTime+.05);o.stop(ac.currentTime+.1)}catch(e){}}
 function $(s){return document.querySelector(s)}
-function toast(t,sub,undo){const el=document.createElement('div');el.className='toast box';el.innerHTML=`<img class="px" src="${sprite('star')}" alt=""><div><b>${esc(t)}</b><small>${esc(sub||'')}</small></div>`;if(undo){const b=document.createElement('button');b.textContent='เลิกทำ';b.onclick=()=>{undo();el.remove()};el.appendChild(b)}$('#toasts').appendChild(el);while($('#toasts').children.length>3)$('#toasts').firstElementChild.remove();setTimeout(()=>el.remove(),4000)}
+function toast(t,sub,undo){const el=document.createElement('div');el.className='toast box';el.innerHTML=`<img class="px" src="${sprite('star')}" alt=""><div><b>${esc(t)}</b><small>${esc(sub||'')}</small></div>`;if(undo){const b=document.createElement('button');b.textContent='เลิกทำ';b.onclick=()=>{undo();el.remove()};el.appendChild(b)}$('#toasts').appendChild(el);while($('#toasts').children.length>3)$('#toasts').firstElementChild.remove();setTimeout(()=>el.remove(),/ไม่สำเร็จ/.test(t)?9000:4000)}
 
 /* ---------- DAY / NIGHT ---------- */
 const root=document.documentElement;
@@ -818,11 +818,11 @@ function renderWorkAdmin(w){const L=LINKS[w.id]||{};
 async function upsertLink(w,patch){const cur=LINKS[w.id]||{work_id:w.id};const row=Object.assign({work_id:w.id,play_url:cur.play_url||null,file_path:cur.file_path||null,file_name:cur.file_name||null,file_size:cur.file_size||null,status:cur.status||null,done:Number.isInteger(cur.done)?cur.done:null,role:cur.role||null,tool:cur.tool||null,descr:cur.descr||null},patch,{updated_at:new Date().toISOString()});
  const {error}=await sb.from('work_links').upsert(row);if(error)throw error;LINKS[w.id]=row}
 async function saveMeta(w,patch,reset){if(!isAdmin())return;
- try{await upsertLink(w,patch);applyMeta();toast(reset?'คืนค่าข้อมูลเดิมแล้ว':'บันทึกข้อมูลแล้ว',w.name+' · '+STN[w.status]+' '+w.done+'%');blip(990)}catch(e){toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง')}
+ try{await upsertLink(w,patch);applyMeta();toast(reset?'คืนค่าข้อมูลเดิมแล้ว':'บันทึกข้อมูลแล้ว',w.name+' · '+STN[w.status]+' '+w.done+'%');blip(990)}catch(e){toast('บันทึกข้อมูลไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
  if($('#wmSave'))renderWorkAdmin(w)}
 async function saveLink(w,url){if(!isAdmin())return;if(url&&!/^https?:\/\//i.test(url))url='https://'+url;
  if(url&&!okUrl(url)){toast('ลิงก์ไม่ถูกต้อง','ต้องเป็นลิงก์เว็บ เช่น https://www.roblox.com/games/...');return}
- try{await upsertLink(w,{play_url:url||null});toast(url?'บันทึกลิงก์แล้ว':'ลบลิงก์แล้ว',w.name);blip(url?990:440)}catch(e){toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง')}
+ try{await upsertLink(w,{play_url:url||null});toast(url?'บันทึกลิงก์แล้ว':'ลบลิงก์แล้ว',w.name);blip(url?990:440)}catch(e){toast('บันทึกลิงก์ไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
  if($('#wlUrl'))renderWorkAdmin(w)}
 $('#gameIn').onchange=async()=>{const f=$('#gameIn').files[0],w=gameTarget;if(!f||!w||!isAdmin()||gameBusy)return;
  if(f.size>52428800){toast('ไฟล์ใหญ่เกินไป','ไม่เกิน 50 MB (ลองบีบอัดเป็น .zip หรืออัปไว้ Google Drive แล้วใส่เป็นลิงก์แทน)');return}
@@ -836,7 +836,7 @@ $('#gameIn').onchange=async()=>{const f=$('#gameIn').files[0],w=gameTarget;if(!f
   try{await upsertLink(w,{file_path:path,file_name:f.name.slice(0,160),file_size:f.size})}catch(e){sb.storage.from('games').remove([path]);throw e}
   if(okFile(old))sb.storage.from('games').remove([old]);
   toast('อัปโหลดไฟล์เกมแล้ว','คนอื่นกดดาวน์โหลดได้ทันที');blip(990)}
- catch(e){toast('อัปโหลดไม่สำเร็จ',/size|large|413/i.test(e&&e.message||'')?'ไฟล์ใหญ่เกิน 50 MB':'ลองใหม่อีกครั้ง')}
+ catch(e){const m=(e&&(e.message||e.error))||'';toast('อัปโหลดไม่สำเร็จ',/size|large|413|exceeded/i.test(m)?'ไฟล์ใหญ่เกินขีดจำกัด (50 MB)':(m||'ลองใหม่อีกครั้ง').slice(0,120));console.error('game upload',e)}
  finally{clearInterval(tick);gameBusy=false;if($('#wlUp'))renderWorkAdmin(w)}};
 async function removeGameFile(w){const L=LINKS[w.id];if(!isAdmin()||!L||!okFile(L.file_path))return;
  try{const old=L.file_path;await upsertLink(w,{file_path:null,file_name:null,file_size:null});sb.storage.from('games').remove([old]);toast('ลบไฟล์แล้ว',w.name);blip(440)}catch(e){toast('ลบไม่สำเร็จ','ลองใหม่อีกครั้ง')}
