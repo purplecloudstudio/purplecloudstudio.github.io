@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=1100">
 <title>Purple Cloud Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://hspnikyapxhztokfjgjb.supabase.co" crossorigin>
@@ -571,7 +571,7 @@ const sb=(()=>{try{if(!window.supabase||/_HERE$/.test(SB_URL))return null;
  return window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage,persistSession:true,autoRefreshToken:true}})}catch(e){return null}})();
 const pubUrl=p=>SB_URL+'/storage/v1/object/public/pc/'+p.split('/').map(encodeURIComponent).join('/');
 const okPath=v=>typeof v==='string'&&/^(slots|credits|reviews)\/[A-Za-z0-9_.-]{1,120}$/.test(v);
-const SLOW=(()=>{try{const c=navigator.connection;return !!c&&(!!c.saveData||/(^|-)(2g|3g)$/.test(c.effectiveType||'')||(c.downlink>0&&c.downlink<1.5))}catch(e){return false}})()||matchMedia('(max-width:600px)').matches;
+const SLOW=(()=>{try{const c=navigator.connection;return !!c&&(!!c.saveData||/(^|-)(2g|3g)$/.test(c.effectiveType||'')||(c.downlink>0&&c.downlink<1.5))}catch(e){return false}})()||(screen.width<=700);
 const smallOf=p=>/\.v2\.(webp|jpg|png)$/.test(p)?p.replace(/\.v2\.(\w+)$/,'.v2-s.$1'):null;
 const vUrl=p=>pubUrl(SLOW&&smallOf(p)?smallOf(p):p);
 const withSmall=p=>smallOf(p)?[p,smallOf(p)]:[p];
