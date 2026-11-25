@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="th">
 <head>
 <meta charset="utf-8">
@@ -816,6 +815,7 @@ let LINKS={};
 const okUrl=u=>typeof u==='string'&&/^https?:\/\/\S{3,500}$/i.test(u);
 const okFile=p=>typeof p==='string'&&/^files\/[A-Za-z0-9_.-]{1,160}$/.test(p);
 const fmtSize=n=>!n?'':n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const okDl=L=>okUrl(L.dl_url);
 const dlUrl=L=>SB_URL+'/storage/v1/object/public/games/'+L.file_path.split('/').map(encodeURIComponent).join('/')+'?download='+encodeURIComponent(L.file_name||'game');
 async function loadLinks(){if(!sb)return;const {data,error}=await sb.from('work_links').select('*');if(error)return;const m={};(data||[]).forEach(r=>m[r.work_id]=r);LINKS=m;applyMeta()}
 function rebuildWorks(){const list=BASE.filter(w=>!(LINKS[w.id]&&LINKS[w.id].hidden));
@@ -827,6 +827,7 @@ function applyMeta(){rebuildWorks();WORKS.forEach(w=>{const d=WDEF[w.id],r=LINKS
  renderStats();try{renderTabs()}catch(e){}renderTable();renderCards();refreshFeats()}
 function workBtns(w){const L=LINKS[w.id]||{},b=[];
  if(okUrl(L.play_url))b.push([w.cat==='roblox'?'▶ เล่นบน Roblox':w.cat==='html'?'▶ เล่นเกม':'🔗 เปิดลิงก์','',()=>{window.open(L.play_url,'_blank','noopener,noreferrer');blip(990)}]);
+ if(okDl(L))b.push(['⬇ ดาวน์โหลดเกม','',()=>{window.open(L.dl_url,'_blank','noopener,noreferrer');blip(990)}]);
  if(okFile(L.file_path))b.push(['⬇ ดาวน์โหลด'+(L.file_size?' ('+fmtSize(L.file_size)+')':''),'',()=>{const a=document.createElement('a');a.href=dlUrl(L);a.rel='noopener';document.body.appendChild(a);a.click();a.remove();toast('เริ่มดาวน์โหลดแล้ว',L.file_name||w.name);blip(990)}]);
  return b}
 let gameTarget=null,gameBusy=false;
@@ -845,6 +846,8 @@ function renderWorkAdmin(w){const L=LINKS[w.id]||{};
   <div class="row2" style="margin-top:6px"><button id="wmSave" type="button">บันทึกข้อมูล</button><button class="rm" id="wmReset" type="button">คืนค่าเดิม</button><button class="rm" id="wmDelete" type="button" style="margin-left:auto;background:var(--red);color:#fff">🗑 ลบผลงานนี้</button></div></div>
  <div class="sec"><b>🔗 ลิงก์ไปเล่นเกม</b><small style="display:block;margin:4px 0 8px">เช่น ลิงก์หน้าเกม Roblox หรือเว็บที่เล่นเกม HTML ได้ (ต้องขึ้นต้นด้วย https://)</small>
   <div class="row2"><input class="inp" id="wlUrl" type="url" placeholder="https://..." value="${esc(L.play_url||'')}"><button id="wlSave" type="button">บันทึกลิงก์</button><button class="rm" id="wlDel" type="button" ${L.play_url?'':'disabled'}>ลบลิงก์</button></div></div>
+ <div class="sec"><b>⬇ ลิงก์ดาวน์โหลดเกม (ไฟล์ใหญ่ได้ถึง 2 GB)</b><small style="display:block;margin:4px 0 8px">อัปไฟล์ไว้ที่ GitHub Releases (ไฟล์ละไม่เกิน 2 GB) หรือ Google Drive / MediaFire แล้ววางลิงก์ตรงนี้ ผู้เล่นจะกดดาวน์โหลดจากปุ่มในเว็บ</small>
+  <div class="row2"><input class="inp" id="wdUrl" type="url" placeholder="https://github.com/.../releases/download/..." value="${esc(L.dl_url||'')}"><button id="wdSave" type="button">บันทึกลิงก์</button><button class="rm" id="wdDel" type="button" ${L.dl_url?'':'disabled'}>ลบลิงก์</button></div></div>
  <div class="sec"><b>⬇ ไฟล์ดาวน์โหลดเกม</b><small style="display:block;margin:4px 0 8px">${L.file_path?'ไฟล์ปัจจุบัน: <span id="wlFn"></span> · '+fmtSize(L.file_size):'ยังไม่มีไฟล์'} · รับไฟล์ทุกชนิด (.zip, .exe, .apk, .html …) ไม่เกิน 50 MB</small>
   <div class="row2"><button id="wlUp" type="button">${L.file_path?'อัปไฟล์ใหม่แทน':'อัปโหลดไฟล์'}</button><button class="rm" id="wlRm" type="button" ${L.file_path?'':'disabled'}>ลบไฟล์</button></div>
   <div class="upbar" id="wlBar" hidden style="margin-top:8px"><i></i></div></div></div>`;
@@ -855,6 +858,8 @@ function renderWorkAdmin(w){const L=LINKS[w.id]||{};
  $('#wmReset').onclick=()=>saveMeta(w,CUSTOM[w.id]?{status:null,done:null,role:null,tool:null,descr:null,feat:null}:{feat:null,name:null,cat:null,sp:null,col:null,status:null,done:null,role:null,tool:null,descr:null},true);
  $('#wmDelete').onclick=()=>deleteWork(w);
  $('#wlSave').onclick=()=>saveLink(w,$('#wlUrl').value.trim());
+ $('#wdSave').onclick=()=>saveDl(w,$('#wdUrl').value.trim());
+ $('#wdDel').onclick=()=>saveDl(w,'');
  $('#wlUrl').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveLink(w,$('#wlUrl').value.trim())}};
  $('#wlDel').onclick=()=>saveLink(w,'');
  $('#wlUp').onclick=()=>{if(gameBusy)return;gameTarget=w;const f=$('#gameIn');f.value='';f.click()};
@@ -883,12 +888,16 @@ async function restoreWork(id){const w=BASE.find(x=>x.id===id);if(!w||!isAdmin()
 async function saveMeta(w,patch,reset){if(!isAdmin())return;
  try{await upsertLink(w,patch);applyMeta();toast(reset?'คืนค่าข้อมูลเดิมแล้ว':'บันทึกข้อมูลแล้ว',w.name+' · '+STN[w.status]+' '+w.done+'%');blip(990)}catch(e){toast('บันทึกข้อมูลไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
  if($('#wmSave'))renderWorkAdmin(w)}
+async function saveDl(w,url){if(!isAdmin())return;if(url&&!/^https?:\/\//i.test(url))url='https://'+url;
+ if(url&&!okUrl(url)){toast('ลิงก์ไม่ถูกต้อง','ต้องเป็นลิงก์เว็บ ขึ้นต้นด้วย https://');return}
+ try{await upsertLink(w,{dl_url:url||null});toast(url?'บันทึกลิงก์ดาวน์โหลดแล้ว':'ลบลิงก์ดาวน์โหลดแล้ว',w.name);blip(url?990:440)}catch(e){toast('บันทึกลิงก์ไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
+ if($('#wdUrl'))renderWorkAdmin(w)}
 async function saveLink(w,url){if(!isAdmin())return;if(url&&!/^https?:\/\//i.test(url))url='https://'+url;
  if(url&&!okUrl(url)){toast('ลิงก์ไม่ถูกต้อง','ต้องเป็นลิงก์เว็บ เช่น https://www.roblox.com/games/...');return}
  try{await upsertLink(w,{play_url:url||null});toast(url?'บันทึกลิงก์แล้ว':'ลบลิงก์แล้ว',w.name);blip(url?990:440)}catch(e){toast('บันทึกลิงก์ไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
  if($('#wlUrl'))renderWorkAdmin(w)}
 $('#gameIn').onchange=async()=>{const f=$('#gameIn').files[0],w=gameTarget;if(!f||!w||!isAdmin()||gameBusy)return;
- if(f.size>52428800){toast('ไฟล์ใหญ่เกินไป','ไม่เกิน 50 MB (ลองบีบอัดเป็น .zip หรืออัปไว้ Google Drive แล้วใส่เป็นลิงก์แทน)');return}
+ if(f.size>52428800){toast('ไฟล์ใหญ่เกินไป','ไม่เกิน 50 MB (ลองบีบอัดเป็น .zip หรืออัปไว้ GitHub Releases / Google Drive แล้วใส่ที่ช่อง ลิงก์ดาวน์โหลดเกม แทน)');return}
  gameBusy=true;const bar=$('#wlBar');if(bar){bar.hidden=false;bar.firstElementChild.style.width='15%'}
  const btns=['#wlUp','#wlRm'].map(s=>$(s)).filter(Boolean);btns.forEach(b=>b.disabled=true);
  let p=15;const tick=setInterval(()=>{p=Math.min(90,p+3);if($('#wlBar'))$('#wlBar').firstElementChild.style.width=p+'%'},400);
