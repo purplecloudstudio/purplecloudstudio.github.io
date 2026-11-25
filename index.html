@@ -259,9 +259,10 @@ footer small{color:#b6a8e6}
 .gal.rev .rh b{font:600 15px/1.3 var(--px);word-break:break-word}
 .gal.rev .rh .stars{color:#f5a623;letter-spacing:1px;white-space:nowrap;font-size:14px}
 .gal.rev .shot{position:relative;background:#fff;cursor:zoom-in}
-.gal.rev .shot img{aspect-ratio:auto;height:auto;max-height:440px;object-fit:cover;object-position:top;background:#fff}
-.gal.rev .shot.tall::after{content:'แตะเพื่ออ่านทั้งหมด';position:absolute;left:0;right:0;bottom:0;padding:34px 10px 10px;text-align:center;font:600 13px/1 var(--px);color:#22163f;background:linear-gradient(transparent,#fff 70%);pointer-events:none}
+.gal.rev .shot img{aspect-ratio:auto;height:auto;max-height:360px;object-fit:cover;object-position:top;background:#fff}
+.gal.rev .shot.tall::after{content:'แตะเพื่อดูเต็มภาพ';position:absolute;left:0;right:0;bottom:0;padding:34px 10px 10px;text-align:center;font:600 13px/1 var(--px);color:#22163f;background:linear-gradient(transparent,#fff 70%);pointer-events:none}
 .gal.rev .rf{padding:6px 12px 10px;font-size:12px;color:var(--soft)}
+.revmore{display:flex;justify-content:center;margin:4px 0 0}
 .editbar{display:flex;justify-content:flex-end;margin-top:8px}
 .editbar button{min-height:36px;padding:0 12px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:3px;font:600 14px/1 var(--px);cursor:pointer}
 .editbar button.on{background:var(--coin);color:#22163f}
@@ -906,7 +907,7 @@ const listOf=k=>credits.filter(c=>(c.kind||'credit')===k);
 async function loadCredits(){if(!sb)return;const {data,error}=await sb.from('credit_images').select('id,path,caption,sort,kind').order('sort',{ascending:true}).order('id');if(error)return;credits=(data||[]).filter(r=>okPath(r.path));renderGallery()}
 function openGalleryPane(p){const b=document.querySelector(`.side [data-pane="${p||'pGallery'}"]`);if(b)b.click();location.hash='savefile'}
 function renderGallery(){Object.keys(KIND).forEach(renderKind)}
-const EDIT={credit:false,review:false};
+const EDIT={credit:false,review:false};let revAll=false;const REV_N=6;
 function renderKind(k){const K=KIND[k],list=listOf(k),can=K.can(),st=can&&EDIT[k];
  $(K.n).textContent=list.length;
  $(K.tools).innerHTML=can?`<div class="editbar"><button type="button" data-edit="${k}" class="${st?'on':''}">${st?'✓ เสร็จสิ้นการจัดการ':(k==='review'?'✎ จัดการรีวิว':'✎ จัดการแกลเลอรี')}</button></div>${st?`<div class="galtools"><input class="inp" data-cap="${k}" maxlength="120" placeholder="${K.cap}"><button class="btn" data-add="${k}" type="button">${K.add}</button><small style="flex-basis:100%;color:var(--soft)">เพิ่มได้หลายรูปพร้อมกัน · ◀ ▶ เลื่อนลำดับ · ✎ แก้ชื่อ · ✕ ลบ</small></div>`:''}`:'';
@@ -915,9 +916,13 @@ function renderKind(k){const K=KIND[k],list=listOf(k),can=K.can(),st=can&&EDIT[k
  const tools=(c,i)=>st?`<div class="gt"><button data-mv="-1" data-id="${c.id}" ${i===0?'disabled':''} aria-label="เลื่อนขึ้นก่อน">◀</button><button data-mv="1" data-id="${c.id}" ${i===list.length-1?'disabled':''} aria-label="เลื่อนไปทีหลัง">▶</button><button data-ed="${c.id}" aria-label="แก้คำบรรยาย">✎</button><button class="del" data-del="${c.id}" aria-label="ลบ">✕</button></div>`:'';
  const empty=`<div class="empty box" style="grid-column:1/-1">${K.empty}${can?' กด '+(st?K.add:'✎ จัดการ')+' เพื่อเริ่ม':''}</div>`;
  if(k==='review'){
-  $(K.grid).innerHTML=list.length?list.map((c,i)=>`<figure><div class="rh"><b></b><span class="stars" aria-label="รีวิวจาก Facebook">★★★★★</span></div><div class="shot" data-zoom="${c.id}"><img src="${esc(vUrl(c.path))}" alt="ภาพรีวิวจากลูกค้า" loading="lazy" decoding="async"></div><div class="rf">รีวิวจริงจาก Facebook</div>${tools(c,i)}</figure>`).join(''):empty;
-  $(K.grid).querySelectorAll('.rh b').forEach((b,i)=>b.textContent=list[i].caption||'ลูกค้า Purple Cloud');
-  $(K.grid).querySelectorAll('.shot img').forEach(img=>{const chk=()=>{if(img.naturalWidth&&img.naturalHeight/img.naturalWidth*img.clientWidth>445)img.parentNode.classList.add('tall')};if(img.complete)chk();else img.addEventListener('load',chk,{once:true})});
+  const shown=(st||revAll)?list:list.slice(0,REV_N);
+  $(K.grid).innerHTML=list.length?shown.map((c,i)=>`<figure><div class="rh"><b></b><span class="stars" aria-label="รีวิวจาก Facebook">★★★★★</span></div><div class="shot" data-zoom="${c.id}"><img src="${esc(vUrl(c.path))}" alt="ภาพรีวิวจากลูกค้า" loading="lazy" decoding="async"></div><div class="rf">รีวิวจริงจาก Facebook</div>${tools(c,i)}</figure>`).join(''):empty;
+  $(K.grid).querySelectorAll('.rh b').forEach((b,i)=>b.textContent=shown[i].caption||'ลูกค้า Purple Cloud');
+  let mb=document.getElementById('revMore');if(!mb){mb=document.createElement('div');mb.id='revMore';mb.className='revmore';$(K.grid).after(mb)}
+  mb.innerHTML=!st&&list.length>REV_N?`<button class="btn alt" type="button">${revAll?'▲ ย่อรีวิว':'ดูรีวิวทั้งหมด ('+list.length+')'}</button>`:'';
+  if(mb.firstChild)mb.firstChild.onclick=()=>{revAll=!revAll;renderKind('review');if(!revAll)$('#pReviews').scrollIntoView({behavior:'smooth'});blip()};
+  $(K.grid).querySelectorAll('.shot img').forEach(img=>{const chk=()=>{if(img.naturalWidth&&img.naturalHeight/img.naturalWidth*img.clientWidth>365)img.parentNode.classList.add('tall')};if(img.complete)chk();else img.addEventListener('load',chk,{once:true})});
  }else{
   $(K.grid).innerHTML=list.length?list.map((c,i)=>`<figure><img src="${esc(vUrl(c.path))}" alt="" loading="lazy" decoding="async" data-zoom="${c.id}"><figcaption></figcaption>${tools(c,i)}</figure>`).join(''):empty;
   $(K.grid).querySelectorAll('figcaption').forEach((f,i)=>f.textContent=list[i].caption||'');
