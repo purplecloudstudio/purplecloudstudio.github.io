@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
 <meta charset="utf-8">
@@ -101,7 +102,12 @@ nav.top .wrap{display:flex;align-items:center;gap:14px;padding:8px max(4vw,14px)
 .dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
 .dots button{width:16px;height:16px;border:3px solid var(--line);background:var(--panel);padding:0;border-radius:2px}
 .dots button.on{background:var(--coin);width:30px}
-@media(max-width:600px){.slide{grid-template-columns:1fr}.slide img{width:110px;grid-row:1}.car .prev{left:4px}.car .next{right:4px}.car .nav{top:12px;transform:none}}
+.slide img.cover{width:100%;max-height:260px;height:auto;aspect-ratio:16/10;object-fit:cover;border:3px solid #0b0720;box-shadow:6px 6px 0 rgba(0,0,0,.3);filter:none;image-rendering:auto}
+.card .art img.cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.card .art .badge,.card .art .fav{z-index:2}
+.modal .mb .art img.cover{width:100%;height:auto;max-height:280px;aspect-ratio:16/10;object-fit:cover}
+.modal .mb .art:has(img.cover){padding:0;overflow:hidden}
+@media(max-width:600px){.slide{grid-template-columns:1fr}.slide img{width:110px;grid-row:1}.slide img.cover{width:100%;max-height:200px}.car .prev{left:4px}.car .next{right:4px}.car .nav{top:12px;transform:none}}
 
 /* TABS + CARDS */
 .head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px;margin-bottom:22px}
@@ -573,7 +579,7 @@ const withSmall=p=>smallOf(p)?[p,smallOf(p)]:[p];
 function slotData(k){const c=cloudSlots[k];return c&&okPath(c.path)?{src:vUrl(c.path),px:!!c.px}:null}
 const imgOf=(k,sp)=>{const d=slotData(k);return d?d.src:(sp?sprite(sp):'')};
 const pxOf=k=>{const d=slotData(k);return d?d.px:true};
-const wImg=w=>`<img class="${pxOf('w:'+w.id)?'px':''}" src="${esc(imgOf('w:'+w.id,w.sp))}" alt="" loading="lazy" decoding="async">`;
+const wImg=w=>`<img class="${slotData('w:'+w.id)?'cover':pxOf('w:'+w.id)?'px':''}" src="${esc(imgOf('w:'+w.id,w.sp))}" alt="" loading="lazy" decoding="async">`;
 const slotName=k=>(SLOTS.find(x=>x[0]===k)||[k,k])[1];
 
 /* ---------- CAROUSEL ---------- */
