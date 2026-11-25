@@ -287,8 +287,8 @@ footer small{color:#b6a8e6}
     <div class="navbg" id="navbg"></div>
     <div class="links" id="links" aria-label="เมนูหลัก">
       <div class="dhd"><b>☰ เมนู</b><button type="button" id="navx" aria-label="ปิดเมนู">✕</button></div>
-      <a href="#home" class="on">หน้าแรก</a>
-      <a href="#featured">ไฮไลต์</a>
+      <a href="#featured" class="on">ไฮไลต์</a>
+      <a href="#home">หน้าแรก</a>
       <a href="#works">ผลงาน</a>
       <a href="#savefile">เครดิต</a>
       <a href="#faq">FAQ</a>
@@ -300,7 +300,20 @@ footer small{color:#b6a8e6}
   </div>
 </nav>
 
-<header class="band" id="home">
+<section class="band" id="featured">
+  <div class="wrap">
+    <div class="label">★ FEATURED</div>
+    <h2>ผลงานเด่น</h2>
+    <div class="car">
+      <div class="track" id="track" tabindex="0" aria-label="ผลงานเด่น เลื่อนซ้ายขวาได้"></div>
+      <button class="nav prev" id="prev" aria-label="ก่อนหน้า">◀</button>
+      <button class="nav next" id="next" aria-label="ถัดไป">▶</button>
+    </div>
+    <div class="dots" id="dots"></div>
+  </div>
+</section>
+
+<header class="band" id="home" style="padding-top:0">
   <div class="wrap hero">
     <div>
       <div class="label">▶ PLAYER 1 · STUDIO PORTFOLIO</div>
@@ -317,18 +330,6 @@ footer small{color:#b6a8e6}
   </div>
 </header>
 
-<section class="band" id="featured" style="padding-top:0">
-  <div class="wrap">
-    <div class="label">★ FEATURED</div>
-    <h2>ผลงานเด่น</h2>
-    <div class="car">
-      <div class="track" id="track" tabindex="0" aria-label="ผลงานเด่น เลื่อนซ้ายขวาได้"></div>
-      <button class="nav prev" id="prev" aria-label="ก่อนหน้า">◀</button>
-      <button class="nav next" id="next" aria-label="ถัดไป">▶</button>
-    </div>
-    <div class="dots" id="dots"></div>
-  </div>
-</section>
 
 <section class="band" id="works">
   <div class="wrap">
@@ -534,7 +535,7 @@ $('#navx').onclick=()=>setNav(false);$('#navbg').onclick=()=>setNav(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#links').classList.contains('open'))setNav(false)});
 matchMedia('(min-width:861px)').addEventListener('change',e=>{if(e.matches)setNav(false)});
 document.querySelectorAll('#links a').forEach(a=>a.onclick=()=>setNav(false));
-const secs=['home','featured','works','savefile','faq'].map(id=>document.getElementById(id));
+const secs=['featured','home','works','savefile','faq'].map(id=>document.getElementById(id));
 const spy=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)document.querySelectorAll('#links a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id))}),{rootMargin:'-40% 0px -55% 0px'});
 secs.forEach(s=>spy.observe(s));
 
