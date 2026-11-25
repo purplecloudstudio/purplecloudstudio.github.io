@@ -254,6 +254,17 @@ footer small{color:#b6a8e6}
 .urow b{flex:1 1 auto;font:600 16px/1.2 var(--px);word-break:break-all}
 .urow button{min-height:36px;padding:0 12px;border:2px solid var(--line);background:var(--coin);color:#22163f;border-radius:3px;font:600 14px/1 var(--px);cursor:pointer}
 .urow button.rm{background:var(--panel);color:var(--ink)}
+.gl{display:grid;gap:10px}
+.gl .row2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gl .row2 .inp{flex:1 1 220px}
+.gl small{color:var(--soft)}
+.gl .sec{padding:12px;border:2px solid var(--line);border-radius:4px;background:var(--bg)}
+.gl .sec b{font:600 16px/1.3 var(--px)}
+.gl button{min-height:38px;padding:0 12px;border:2px solid var(--line);background:var(--coin);color:#22163f;border-radius:3px;font:600 14px/1 var(--px);cursor:pointer}
+.gl button.rm{background:var(--panel);color:var(--ink)}
+.gl button:disabled{opacity:.4;cursor:default}
+.upbar{height:10px;border:2px solid var(--line);border-radius:3px;background:var(--panel);overflow:hidden}
+.upbar i{display:block;height:100%;width:0;background:var(--grass);transition:width .2s}
 .atabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .atabs button{min-height:38px;padding:0 14px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:3px;font:600 15px/1 var(--px);cursor:pointer}
 .atabs button[aria-selected=true]{background:var(--coin);color:#22163f}
@@ -435,6 +446,7 @@ footer small{color:#b6a8e6}
   </div>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>
+<input type="file" id="gameIn" hidden>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
@@ -626,7 +638,7 @@ function openModal(title,body,foot){lastFocus=document.activeElement;$('#mTitle'
 function closeModal(){$('#ov').classList.remove('open');lastFocus&&lastFocus.focus&&lastFocus.focus()}
 $('#mx').onclick=closeModal;$('#ov').onclick=e=>{if(e.target.id==='ov')closeModal()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAuth();closeMenus()}});
-function showWork(id){const w=WORKS.find(x=>x.id===id);if(!w)return;openModal(w.name,`<div class="art" style="background:${w.col}">${wImg(w)}</div><span class="badge ${w.cat}">${CAT[w.cat]}</span> <span class="st ${w.status}">${STN[w.status]}</span><p>${esc(w.desc)}</p><dl class="kv"><dt>หน้าที่</dt><dd>${esc(w.role)}</dd><dt>เครื่องมือ</dt><dd>${esc(w.tool)}</dd><dt>ความคืบหน้า</dt><dd>${w.done}%</dd><dt>สร้างโดย</dt><dd>Purple Cloud Studio</dd></dl>`,[['ปิด','alt'],['คัดลอกชื่อ','alt',()=>copy(w.name)]].concat(isAdmin()?[['เปลี่ยนภาพ','alt',()=>pickFile('w:'+w.id)]]:[]).concat([[me()&&me().favs.includes(w.id)?'♥ เลิกถูกใจ':'♡ ถูกใจ','',()=>toggleFav(w.id)]]))}
+function showWork(id){const w=WORKS.find(x=>x.id===id);if(!w)return;openModal(w.name,`<div class="art" style="background:${w.col}">${wImg(w)}</div><span class="badge ${w.cat}">${CAT[w.cat]}</span> <span class="st ${w.status}">${STN[w.status]}</span><p>${esc(w.desc)}</p><dl class="kv"><dt>หน้าที่</dt><dd>${esc(w.role)}</dd><dt>เครื่องมือ</dt><dd>${esc(w.tool)}</dd><dt>ความคืบหน้า</dt><dd>${w.done}%</dd><dt>สร้างโดย</dt><dd>Purple Cloud Studio</dd></dl>`,[['ปิด','alt']].concat(workBtns(w)).concat(isAdmin()?[['เปลี่ยนภาพ','alt',()=>pickFile('w:'+w.id)],['⚙ ลิงก์ / ไฟล์','alt',()=>setTimeout(()=>openWorkAdmin(w.id),0)]]:[]).concat([[me()&&me().favs.includes(w.id)?'♥ เลิกถูกใจ':'♡ ถูกใจ','',()=>toggleFav(w.id)]]))}
 document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o)showWork(o.dataset.open)});
 function copy(t){try{navigator.clipboard.writeText(t).then(()=>toast('คัดลอกแล้ว',t),()=>toast('คัดลอกไม่ได้','เบราว์เซอร์ไม่อนุญาต'))}catch(e){toast('คัดลอกไม่ได้','เบราว์เซอร์ไม่อนุญาต')}}
 
@@ -719,7 +731,12 @@ async function setRole(id,role){if(!isAdmin())return;const u=userList.find(x=>x.
  if(error){toast('เปลี่ยนยศไม่สำเร็จ','ลองใหม่อีกครั้ง');return}
  if(u)u.role=role;renderAdmin();toast(role==='staff'?'แต่งตั้ง STAFF แล้ว':'ปลดจาก STAFF แล้ว',u?u.username:'');blip(role==='staff'?990:440)}
 function renderAdmin(){
- const tabs=`<div class="atabs" role="tablist"><button role="tab" aria-selected="${adminTab==='img'}" data-at="img">🖼 ภาพทั้งเว็บ</button><button role="tab" aria-selected="${adminTab==='users'}" data-at="users">👥 ผู้ใช้ / ยศ</button></div>`;
+ const tabs=`<div class="atabs" role="tablist"><button role="tab" aria-selected="${adminTab==='img'}" data-at="img">🖼 ภาพทั้งเว็บ</button><button role="tab" aria-selected="${adminTab==='games'}" data-at="games">🎮 ลิงก์ / ไฟล์เกม</button><button role="tab" aria-selected="${adminTab==='users'}" data-at="users">👥 ผู้ใช้ / ยศ</button></div>`;
+ if(adminTab==='games'){
+  $('#mBody').innerHTML=tabs+`<p class="mode">ใส่ลิงก์ไปเล่นเกม และอัปไฟล์ให้คนดาวน์โหลด (ไฟล์ละไม่เกิน 50 MB) ปุ่มจะขึ้นในหน้ารายละเอียดของผลงานนั้นทันที</p><div class="ulist">${WORKS.map(w=>{const L=LINKS[w.id]||{};return `<div class="urow"><b>${esc(w.name)}</b><small>${L.play_url?'🔗 มีลิงก์':'— ไม่มีลิงก์'} · ${L.file_path?'⬇ '+esc(L.file_name||'มีไฟล์'):'— ไม่มีไฟล์'}</small><button data-wa="${esc(w.id)}">ตั้งค่า</button></div>`}).join('')}</div>`;
+  $('#mBody').querySelectorAll('[data-wa]').forEach(b=>b.onclick=()=>openWorkAdmin(b.dataset.wa));
+  $('#mBody').querySelectorAll('[data-at]').forEach(b=>b.onclick=async()=>{adminTab=b.dataset.at;if(adminTab==='users')await loadUsers();renderAdmin();blip()});
+  return}
  if(adminTab==='users'){
   const q=($('#uq')&&$('#uq').value)||'';
   const rows=userList.filter(u=>!q||u.username.toLowerCase().includes(q.toLowerCase())).map(u=>`<div class="urow"><b></b>${u.role==='admin'?'<span class="adm">ADMIN</span>':u.role==='staff'?'<span class="stf">STAFF</span>':'<small>สมาชิก</small>'}${u.role==='admin'?'':u.role==='staff'?`<button class="rm" data-role="member" data-uid="${esc(u.id)}">ปลด Staff</button>`:`<button data-role="staff" data-uid="${esc(u.id)}">ตั้งเป็น Staff</button>`}</div>`);
@@ -735,6 +752,57 @@ function renderAdmin(){
  $('#mBody').querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>resetSlot(b.dataset.rs))}
  $('#mBody').querySelectorAll('[data-at]').forEach(b=>b.onclick=async()=>{adminTab=b.dataset.at;if(adminTab==='users')await loadUsers();renderAdmin();blip()})}
 async function openAdmin(t){if(!isAdmin())return;adminTab=t||'img';if(adminTab==='users')await loadUsers();openModal('หลังบ้าน (ADMIN)','',[['ปิด','alt']]);renderAdmin()}
+
+/* ---------- ลิงก์เล่นเกม + ไฟล์ดาวน์โหลด (ADMIN จัดการ) ---------- */
+let LINKS={};
+const okUrl=u=>typeof u==='string'&&/^https?:\/\/\S{3,500}$/i.test(u);
+const okFile=p=>typeof p==='string'&&/^files\/[A-Za-z0-9_.-]{1,160}$/.test(p);
+const fmtSize=n=>!n?'':n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const dlUrl=L=>SB_URL+'/storage/v1/object/public/games/'+L.file_path.split('/').map(encodeURIComponent).join('/')+'?download='+encodeURIComponent(L.file_name||'game');
+async function loadLinks(){if(!sb)return;const {data,error}=await sb.from('work_links').select('work_id,play_url,file_path,file_name,file_size');if(error)return;const m={};(data||[]).forEach(r=>m[r.work_id]=r);LINKS=m}
+function workBtns(w){const L=LINKS[w.id]||{},b=[];
+ if(okUrl(L.play_url))b.push([w.cat==='roblox'?'▶ เล่นบน Roblox':w.cat==='html'?'▶ เล่นเกม':'🔗 เปิดลิงก์','',()=>{window.open(L.play_url,'_blank','noopener,noreferrer');blip(990)}]);
+ if(okFile(L.file_path))b.push(['⬇ ดาวน์โหลด'+(L.file_size?' ('+fmtSize(L.file_size)+')':''),'',()=>{const a=document.createElement('a');a.href=dlUrl(L);a.rel='noopener';document.body.appendChild(a);a.click();a.remove();toast('เริ่มดาวน์โหลดแล้ว',L.file_name||w.name);blip(990)}]);
+ return b}
+let gameTarget=null,gameBusy=false;
+function openWorkAdmin(id){if(!isAdmin())return;const w=WORKS.find(x=>x.id===id);if(!w)return;
+ openModal('ลิงก์ / ไฟล์: '+w.name,'',[['เสร็จ','alt']]);renderWorkAdmin(w)}
+function renderWorkAdmin(w){const L=LINKS[w.id]||{};
+ $('#mBody').innerHTML=`<div class="gl">
+ <div class="sec"><b>🔗 ลิงก์ไปเล่นเกม</b><small style="display:block;margin:4px 0 8px">เช่น ลิงก์หน้าเกม Roblox หรือเว็บที่เล่นเกม HTML ได้ (ต้องขึ้นต้นด้วย https://)</small>
+  <div class="row2"><input class="inp" id="wlUrl" type="url" placeholder="https://..." value="${esc(L.play_url||'')}"><button id="wlSave" type="button">บันทึกลิงก์</button><button class="rm" id="wlDel" type="button" ${L.play_url?'':'disabled'}>ลบลิงก์</button></div></div>
+ <div class="sec"><b>⬇ ไฟล์ดาวน์โหลดเกม</b><small style="display:block;margin:4px 0 8px">${L.file_path?'ไฟล์ปัจจุบัน: <span id="wlFn"></span> · '+fmtSize(L.file_size):'ยังไม่มีไฟล์'} · รับไฟล์ทุกชนิด (.zip, .exe, .apk, .html …) ไม่เกิน 50 MB</small>
+  <div class="row2"><button id="wlUp" type="button">${L.file_path?'อัปไฟล์ใหม่แทน':'อัปโหลดไฟล์'}</button><button class="rm" id="wlRm" type="button" ${L.file_path?'':'disabled'}>ลบไฟล์</button></div>
+  <div class="upbar" id="wlBar" hidden style="margin-top:8px"><i></i></div></div></div>`;
+ if($('#wlFn'))$('#wlFn').textContent=L.file_name||'';
+ $('#wlSave').onclick=()=>saveLink(w,$('#wlUrl').value.trim());
+ $('#wlUrl').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveLink(w,$('#wlUrl').value.trim())}};
+ $('#wlDel').onclick=()=>saveLink(w,'');
+ $('#wlUp').onclick=()=>{if(gameBusy)return;gameTarget=w;const f=$('#gameIn');f.value='';f.click()};
+ $('#wlRm').onclick=()=>removeGameFile(w)}
+async function upsertLink(w,patch){const cur=LINKS[w.id]||{work_id:w.id};const row=Object.assign({work_id:w.id,play_url:cur.play_url||null,file_path:cur.file_path||null,file_name:cur.file_name||null,file_size:cur.file_size||null},patch,{updated_at:new Date().toISOString()});
+ const {error}=await sb.from('work_links').upsert(row);if(error)throw error;LINKS[w.id]=row}
+async function saveLink(w,url){if(!isAdmin())return;if(url&&!/^https?:\/\//i.test(url))url='https://'+url;
+ if(url&&!okUrl(url)){toast('ลิงก์ไม่ถูกต้อง','ต้องเป็นลิงก์เว็บ เช่น https://www.roblox.com/games/...');return}
+ try{await upsertLink(w,{play_url:url||null});toast(url?'บันทึกลิงก์แล้ว':'ลบลิงก์แล้ว',w.name);blip(url?990:440)}catch(e){toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง')}
+ if($('#wlUrl'))renderWorkAdmin(w)}
+$('#gameIn').onchange=async()=>{const f=$('#gameIn').files[0],w=gameTarget;if(!f||!w||!isAdmin()||gameBusy)return;
+ if(f.size>52428800){toast('ไฟล์ใหญ่เกินไป','ไม่เกิน 50 MB (ลองบีบอัดเป็น .zip หรืออัปไว้ Google Drive แล้วใส่เป็นลิงก์แทน)');return}
+ gameBusy=true;const bar=$('#wlBar');if(bar){bar.hidden=false;bar.firstElementChild.style.width='15%'}
+ const btns=['#wlUp','#wlRm'].map(s=>$(s)).filter(Boolean);btns.forEach(b=>b.disabled=true);
+ let p=15;const tick=setInterval(()=>{p=Math.min(90,p+3);if($('#wlBar'))$('#wlBar').firstElementChild.style.width=p+'%'},400);
+ toast('กำลังอัปโหลดไฟล์เกม…',f.name+' · '+fmtSize(f.size));
+ const ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase();
+ const path='files/'+w.id+'-'+rid()+ext,old=(LINKS[w.id]||{}).file_path;
+ try{const up=await sb.storage.from('games').upload(path,f,{contentType:f.type||'application/octet-stream',cacheControl:'3600'});if(up.error)throw up.error;
+  try{await upsertLink(w,{file_path:path,file_name:f.name.slice(0,160),file_size:f.size})}catch(e){sb.storage.from('games').remove([path]);throw e}
+  if(okFile(old))sb.storage.from('games').remove([old]);
+  toast('อัปโหลดไฟล์เกมแล้ว','คนอื่นกดดาวน์โหลดได้ทันที');blip(990)}
+ catch(e){toast('อัปโหลดไม่สำเร็จ',/size|large|413/i.test(e&&e.message||'')?'ไฟล์ใหญ่เกิน 50 MB':'ลองใหม่อีกครั้ง')}
+ finally{clearInterval(tick);gameBusy=false;if($('#wlUp'))renderWorkAdmin(w)}};
+async function removeGameFile(w){const L=LINKS[w.id];if(!isAdmin()||!L||!okFile(L.file_path))return;
+ try{const old=L.file_path;await upsertLink(w,{file_path:null,file_name:null,file_size:null});sb.storage.from('games').remove([old]);toast('ลบไฟล์แล้ว',w.name);blip(440)}catch(e){toast('ลบไม่สำเร็จ','ลองใหม่อีกครั้ง')}
+ if($('#wlRm'))renderWorkAdmin(w)}
 
 /* ---------- แกลเลอรีเครดิต (STAFF + ADMIN จัดการ) ---------- */
 let credits=[];
@@ -779,7 +847,7 @@ applyImages();renderGallery();
 if(sb){
  sb.auth.onAuthStateChange((ev,session)=>{if(ev==='SIGNED_OUT'){ME=null;refreshUser();renderGallery()}
   else if(ev==='INITIAL_SESSION'||ev==='TOKEN_REFRESHED'||ev==='USER_UPDATED'){setTimeout(async()=>{await loadMe(session&&session.user);refreshUser();renderGallery()},0)}});
- loadSlots();loadCredits();
+ loadSlots();loadCredits();loadLinks();
 }else{toast('ระบบสมาชิกออฟไลน์','เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ดูผลงานได้ตามปกติ')}
 }
 </script>
