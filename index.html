@@ -50,10 +50,14 @@ nav.top .wrap{display:flex;align-items:center;gap:14px;padding:8px max(4vw,14px)
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 20px/1 var(--px)}
 .logo img{width:40px;height:40px;object-fit:contain}
 .links{display:flex;gap:4px;margin-left:auto}
+.links .dhd{display:none;align-items:center;justify-content:space-between;padding:0 0 12px;margin-bottom:6px;border-bottom:2px dashed var(--soft)}
+.links .dhd b{font:700 20px/1 var(--px)}
+.links .dhd button{width:40px;height:40px;border:3px solid var(--line);background:var(--coin);color:#22163f;border-radius:4px;font:700 18px/1 var(--px);cursor:pointer}
+.navbg{display:none}
 .links a{text-decoration:none;font:600 16px/1 var(--px);padding:12px 12px;border-radius:3px}
 .links a:hover,.links a.on{background:var(--pu);color:#fff}
 .burger{display:none;margin-left:auto;width:44px;height:44px;border:3px solid var(--line);background:var(--coin);color:#22163f;border-radius:4px;font:700 20px/1 var(--px)}
-@media(max-width:860px){.burger{display:block}.links{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;background:var(--panel);border-bottom:3px solid var(--line);padding:8px 14px 14px}.links.open{display:flex}}
+@media(max-width:860px){.burger{display:block}.burger{order:-1;margin-left:0}.acct{margin-left:auto}.links{display:flex;position:fixed;left:0;top:0;bottom:0;width:min(280px,82vw);z-index:2;flex-direction:column;gap:6px;margin:0;background:var(--panel);border-right:3px solid var(--line);box-shadow:6px 0 0 rgba(0,0,0,.25);padding:14px;overflow-y:auto;transform:translateX(-105%);visibility:hidden;transition:transform .22s ease,visibility .22s}.links a{padding:14px 12px;font-size:18px;border:2px solid transparent}.links .dhd{display:flex}.navbg{display:block;position:fixed;inset:0;z-index:1;background:rgba(10,5,30,.55);opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}.navbg.open{opacity:1;visibility:visible}.links.open{transform:none;visibility:visible}}
 
 /* SWITCH */
 .sw{display:inline-flex;align-items:center;gap:10px;cursor:pointer;min-height:44px;user-select:none}
@@ -276,7 +280,9 @@ footer small{color:#b6a8e6}
   <div class="wrap">
     <a class="logo" href="#home"><img class="px" data-sprite="cloud" alt=""><span class="lt">Purple Cloud</span></a>
     <button class="burger" id="burger" aria-label="เปิดเมนู" aria-expanded="false">≡</button>
-    <div class="links" id="links">
+    <div class="navbg" id="navbg"></div>
+    <div class="links" id="links" aria-label="เมนูหลัก">
+      <div class="dhd"><b>☰ เมนู</b><button type="button" id="navx" aria-label="ปิดเมนู">✕</button></div>
       <a href="#home" class="on">หน้าแรก</a>
       <a href="#featured">ไฮไลต์</a>
       <a href="#works">ผลงาน</a>
@@ -511,8 +517,12 @@ $('#scan').onchange=e=>{document.body.classList.toggle('scan',e.target.checked);
 $('#sfx').onchange=e=>{if(e.target.checked)blip(990)};
 
 /* ---------- NAVBAR ---------- */
-$('#burger').onclick=()=>{const o=$('#links').classList.toggle('open');$('#burger').setAttribute('aria-expanded',o)};
-document.querySelectorAll('#links a').forEach(a=>a.onclick=()=>{$('#links').classList.remove('open')});
+function setNav(o){$('#links').classList.toggle('open',o);$('#navbg').classList.toggle('open',o);$('#burger').setAttribute('aria-expanded',o);document.body.style.overflow=o?'hidden':'';if(o)setTimeout(()=>$('#navx').focus(),50);else if(document.activeElement&&$('#links').contains(document.activeElement))$('#burger').focus()}
+$('#burger').onclick=()=>{setNav(!$('#links').classList.contains('open'));blip()};
+$('#navx').onclick=()=>setNav(false);$('#navbg').onclick=()=>setNav(false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#links').classList.contains('open'))setNav(false)});
+matchMedia('(min-width:861px)').addEventListener('change',e=>{if(e.matches)setNav(false)});
+document.querySelectorAll('#links a').forEach(a=>a.onclick=()=>setNav(false));
 const secs=['home','featured','works','savefile','faq'].map(id=>document.getElementById(id));
 const spy=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)document.querySelectorAll('#links a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id))}),{rootMargin:'-40% 0px -55% 0px'});
 secs.forEach(s=>spy.observe(s));
