@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Purple Cloud Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style id="pc-style">
+/* VOICE: a cheerful retro game title screen for a one-person studio
+   IDEA: the site behaves like a game cartridge — title screen, level select, save menu, options
+   PICTURE: a live pixel-art world (sky, purple clouds, hills, a walking hero) that turns day/night
+   COLOUR and TYPE: studio purple + sky + grass, yellow coin accent; Pixelify Sans titles, Mitr for Thai
+   LAYOUT: navbar → title screen → featured carousel → level select (tabs+cards) → save menu (sidebar+table) → FAQ → footer */
+:root{
+  --bg:#f4efff;--panel:#ffffff;--ink:#22163f;--soft:#5d4f86;--line:#22163f;
+  --pu:#6b3fd1;--pu2:#9a74ff;--sky:#8fd3ff;--grass:#4fb946;--coin:#ffcc2e;--red:#ef476f;--teal:#1fb5a3;
+  --shadow:4px 4px 0 var(--line);--px:"Pixelify Sans","Mitr",monospace;
+}
+html[data-mode=night]{
+  --bg:#130d2b;--panel:#21184a;--ink:#f1ebff;--soft:#b6a8e6;--line:#05030f;
+  --pu:#8d63ff;--pu2:#b79bff;--sky:#1a1650;--grass:#2f7d3a;--coin:#ffd84d;
+}
+*{box-sizing:border-box;min-width:0}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Mitr",system-ui,sans-serif;font-weight:300;overflow-x:clip;transition:background .4s,color .4s}
+body.scan::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0 1px,transparent 1px 3px)}
+h1,h2,h3{font-family:var(--px);line-height:1.05;margin:0;text-wrap:balance;font-weight:700}
+h2{font-size:clamp(30px,5vw,44px)}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:1240px;margin:0 auto}
+.band{padding:clamp(36px,5vw,72px) max(5vw,16px)}
+.box{background:var(--panel);border:3px solid var(--line);box-shadow:var(--shadow);border-radius:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 18px;border:3px solid var(--line);background:var(--coin);color:#22163f;font-family:var(--px);font-size:17px;font-weight:600;box-shadow:var(--shadow);border-radius:4px;text-decoration:none;transition:transform .08s,box-shadow .08s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--line)}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--line)}
+.btn.alt{background:var(--panel);color:var(--ink)}
+.btn.danger{background:var(--red);color:#fff}
+:focus-visible{outline:3px dashed var(--coin);outline-offset:3px}
+.badge{display:inline-block;font:600 13px/1 var(--px);padding:5px 8px;border:2px solid var(--line);border-radius:3px;background:var(--pu2);color:#160d33;white-space:nowrap}
+.badge.html{background:#ffb347}.badge.roblox{background:#7be07a}.badge.other{background:#8fd3ff}
+.label{font:600 14px/1 var(--px);color:var(--pu);letter-spacing:.02em}
+.crumb{font-size:14px;color:var(--soft);margin-bottom:10px}.crumb b{color:var(--ink);font-weight:500}
+img.px{image-rendering:pixelated}
+
+/* NAVBAR */
+nav.top{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:3px solid var(--line)}
+nav.top .wrap{display:flex;align-items:center;gap:14px;padding:8px max(4vw,14px);min-height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 20px/1 var(--px)}
+.logo img{width:40px;height:40px;object-fit:contain}
+.links{display:flex;gap:4px;margin-left:auto}
+.links a{text-decoration:none;font:600 16px/1 var(--px);padding:12px 12px;border-radius:3px}
+.links a:hover,.links a.on{background:var(--pu);color:#fff}
+.burger{display:none;margin-left:auto;width:44px;height:44px;border:3px solid var(--line);background:var(--coin);color:#22163f;border-radius:4px;font:700 20px/1 var(--px)}
+@media(max-width:860px){.burger{display:block}.links{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;background:var(--panel);border-bottom:3px solid var(--line);padding:8px 14px 14px}.links.open{display:flex}}
+
+/* SWITCH */
+.sw{display:inline-flex;align-items:center;gap:10px;cursor:pointer;min-height:44px;user-select:none}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.sw .tr{width:58px;height:30px;border:3px solid var(--line);background:#cfc6ea;border-radius:3px;position:relative;flex:none;transition:background .2s}
+.sw .tr::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border:3px solid var(--line);box-sizing:border-box;transition:left .18s steps(3)}
+.sw input:checked+.tr{background:var(--pu)}
+.sw input:checked+.tr::after{left:30px;background:var(--coin)}
+.sw input:focus-visible+.tr{outline:3px dashed var(--coin);outline-offset:3px}
+.daynight{font:600 15px/1 var(--px)}
+.daynight .tr{background:#8fd3ff}
+.daynight .tr::before{content:"☀";position:absolute;right:6px;top:2px;font-size:15px;color:#c47a00}
+.daynight input:checked+.tr::before{content:"☾";left:7px;right:auto;color:#fff}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(20px,4vw,48px);align-items:center}
+.hero h1{font-size:clamp(42px,7vw,76px);color:var(--ink)}
+.hero h1 span{display:block;color:var(--pu)}
+.hero p{font-size:17px;max-width:34em;color:var(--soft);margin:16px 0 22px}
+.stage{position:relative;aspect-ratio:16/10;overflow:hidden}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.stage .hud{position:absolute;left:10px;top:10px;font:700 15px/1 var(--px);color:#fff;text-shadow:2px 2px 0 #22163f;display:flex;gap:12px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:26px}
+.stat{padding:12px}
+.stat b{display:block;font:700 32px/1 var(--px);color:var(--pu)}
+.stat span{font-size:13px;color:var(--soft)}
+@media(max-width:760px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* CAROUSEL */
+.car{position:relative;margin-top:22px}
+.track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border:3px solid var(--line);box-shadow:var(--shadow);border-radius:4px}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);align-items:center;gap:20px;padding:clamp(22px,4vw,44px) clamp(22px,5vw,64px);color:#fff;min-height:260px}
+.slide h3{font-size:clamp(28px,4vw,42px);margin:10px 0}
+.slide p{margin:0 0 16px;max-width:32em}
+.slide img{width:min(100%,200px);aspect-ratio:1;object-fit:contain;justify-self:center;filter:drop-shadow(6px 6px 0 rgba(0,0,0,.3))}
+.slide .badge{background:#fff}
+.car .nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:3px solid var(--line);background:var(--coin);color:#22163f;font:700 20px/1 var(--px);border-radius:4px}
+.car .prev{left:-12px}.car .next{right:-12px}
+.dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
+.dots button{width:16px;height:16px;border:3px solid var(--line);background:var(--panel);padding:0;border-radius:2px}
+.dots button.on{background:var(--coin);width:30px}
+@media(max-width:600px){.slide{grid-template-columns:1fr}.slide img{width:110px;grid-row:1}.car .prev{left:4px}.car .next{right:4px}.car .nav{top:12px;transform:none}}
+
+/* TABS + CARDS */
+.head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px;margin-bottom:22px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:6px;background:var(--panel);border:3px solid var(--line);border-radius:4px}
+.tabs button{min-height:40px;padding:6px 14px;border:0;background:none;font:600 16px/1 var(--px);border-radius:3px}
+.tabs button[aria-selected=true]{background:var(--pu);color:#fff}
+.tabs button span{font-size:13px;opacity:.7;margin-left:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
+.card{display:flex;flex-direction:column;overflow:hidden;text-align:left;padding:0;transition:transform .12s}
+.card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--line)}
+.card .art{height:150px;display:grid;place-items:center;border-bottom:3px solid var(--line);position:relative}
+.card .art img{width:96px;height:96px;object-fit:contain}
+.card .art .badge{position:absolute;left:10px;top:10px}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card h3{font-size:22px}
+.card p{margin:0;font-size:15px;color:var(--soft)}
+.card .more{margin-top:auto;padding-top:8px;font:600 15px/1 var(--px);color:var(--pu)}
+.skel{height:300px;background:linear-gradient(90deg,var(--panel) 30%,var(--bg) 50%,var(--panel) 70%);background-size:300% 100%;animation:sk 1s infinite}
+@keyframes sk{to{background-position:-150% 0}}
+
+/* DASHBOARD: SIDEBAR + TABLE */
+.dash{display:grid;grid-template-columns:230px minmax(0,1fr);overflow:hidden}
+.side{background:#22163f;color:#efe9ff;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+html[data-mode=night] .side{background:#0b0720}
+.side .who{display:flex;gap:10px;align-items:center;padding:6px 6px 16px;border-bottom:2px dashed #4a3b80;margin-bottom:10px}
+.side .who img{width:40px;height:40px}
+.side .who b{font:700 17px/1.1 var(--px);display:block}.side .who small{color:#b6a8e6}
+.side button{display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:8px 12px;border:0;background:none;text-align:left;font:600 16px/1 var(--px);border-radius:3px;color:#efe9ff}
+.side button.on{background:var(--coin);color:#22163f}
+.side button .badge{font-size:12px;padding:3px 6px}
+.pane{padding:clamp(16px,3vw,28px)}
+.pane[hidden]{display:none}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.inp{min-height:44px;padding:8px 12px;border:3px solid var(--line);background:var(--bg);color:var(--ink);font:16px "Mitr",sans-serif;border-radius:4px}
+.inp.grow{flex:1 1 200px}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{font:600 15px/1.2 var(--px);text-align:left;padding:10px;border-bottom:3px solid var(--line);white-space:nowrap}
+.tbl th button{border:0;background:none;font:inherit;padding:0}
+.tbl td{padding:10px;border-bottom:2px dashed color-mix(in srgb,var(--line) 25%,transparent);vertical-align:middle}
+.tbl td.r,.tbl th.r{text-align:right;white-space:nowrap}
+.tbl tr:hover td{background:color-mix(in srgb,var(--pu) 8%,transparent)}
+.st{font:600 13px/1 var(--px);padding:4px 8px;border-radius:3px;white-space:nowrap;border:2px solid var(--line)}
+.st.done{background:#7be07a;color:#11301a}.st.wip{background:#ffcc2e;color:#3d2a00}.st.plan{background:#cfc6ea;color:#22163f}
+.dd{position:relative}
+.dd>button{width:40px;height:40px;border:2px solid transparent;background:none;font:700 18px/1 var(--px);border-radius:3px}
+.dd>button:hover{border-color:var(--line)}
+.menu{position:absolute;right:0;top:100%;z-index:20;min-width:190px;padding:6px;display:none}
+.menu.open{display:block}
+.menu button{display:flex;width:100%;gap:10px;align-items:center;min-height:40px;padding:6px 10px;border:0;background:none;text-align:left;border-radius:3px;font-size:15px}
+.menu button:hover{background:var(--bg)}
+.menu button.del{color:var(--red)}
+.pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;font-size:14px;color:var(--soft)}
+.pager div{display:flex;gap:6px}
+.pager button{min-width:40px;height:40px;border:2px solid var(--line);background:var(--panel);font:600 15px/1 var(--px);border-radius:3px}
+.pager button.on{background:var(--pu);color:#fff}
+.pager button:disabled{opacity:.4;cursor:default}
+.empty{text-align:center;padding:30px;color:var(--soft)}
+.tl{list-style:none;margin:16px 0 0;padding:0;border-left:4px solid var(--pu);margin-left:8px}
+.tl li{position:relative;padding:0 0 18px 22px}
+.tl li::before{content:"";position:absolute;left:-12px;top:4px;width:16px;height:16px;background:var(--coin);border:3px solid var(--line)}
+.tl b{font:600 17px/1.2 var(--px);display:block}.tl span{font-size:14px;color:var(--soft)}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0;border-bottom:2px dashed color-mix(in srgb,var(--line) 25%,transparent)}
+.setrow b{font-weight:500;display:block}.setrow small{color:var(--soft)}
+.tip{position:relative}
+.tip:hover::after,.tip:focus-visible::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#22163f;color:#fff;font:13px/1.3 "Mitr";padding:6px 8px;border-radius:3px;white-space:nowrap;z-index:30}
+@media(max-width:760px){.dash{grid-template-columns:1fr}.side{flex-direction:row;flex-wrap:wrap}.side .who{width:100%}.side button{flex:1 1 auto}}
+@media(max-width:600px){.tbl{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding:10px 0;border-bottom:2px dashed color-mix(in srgb,var(--line) 25%,transparent);position:relative}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:6.5em;text-align:start!important}.stack td::before{content:attr(data-l);float:inline-start;width:6em;margin-inline-start:-6.5em;color:var(--soft);font-size:13px}.stack td.act{position:absolute;right:0;top:6px;padding:0}.stack td.act::before{display:none}}
+
+/* ACCORDION */
+.acc{display:grid;gap:12px;max-width:860px}
+.acc details{padding:0}
+.acc summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:14px;align-items:center;padding:16px 18px;font:600 19px/1.3 var(--px);min-height:44px}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"+";font-size:26px;color:var(--pu);flex:none}
+.acc details[open] summary::after{content:"−"}
+.acc details p{margin:0;padding:0 18px 18px;color:var(--soft)}
+
+/* MODAL + TOAST */
+.ov{position:fixed;inset:0;z-index:60;background:rgba(10,5,30,.6);display:none;place-items:center;padding:16px}
+.ov.open{display:grid}
+.modal{width:min(560px,100%);max-height:90vh;overflow:auto;animation:pop .18s steps(3)}
+@keyframes pop{from{transform:scale(.85)}}
+.modal .mh{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:3px solid var(--line);background:var(--pu);color:#fff}
+.modal .mh h3{font-size:24px}
+.modal .x{width:44px;height:44px;border:3px solid var(--line);background:var(--coin);color:#22163f;font:700 18px/1 var(--px);border-radius:3px}
+.modal .mb{padding:18px}
+.modal .mb .art{display:grid;place-items:center;height:160px;border:3px solid var(--line);margin-bottom:14px;border-radius:3px}
+.modal .mb .art img{width:110px;height:110px;object-fit:contain}
+.modal .mf{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:0 18px 18px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px;margin:12px 0 0}
+.kv dt{color:var(--soft)}.kv dd{margin:0}
+.toasts{position:fixed;right:16px;bottom:16px;z-index:80;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.toast{display:flex;gap:12px;align-items:center;padding:12px 14px;min-width:min(300px,calc(100vw - 32px));animation:tin .2s steps(3)}
+.toast img{width:28px;height:28px;flex:none}
+.toast b{font:600 16px/1.2 var(--px);display:block}.toast small{color:var(--soft)}
+.toast button{margin-left:auto;border:2px solid var(--line);background:var(--coin);color:#22163f;font:600 14px/1 var(--px);padding:8px 10px;border-radius:3px}
+@keyframes tin{from{transform:translateY(20px);opacity:0}}
+
+/* AUTH */
+.acct{position:relative;margin-left:4px}
+.acct .who-btn{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 10px 4px 4px;border:3px solid var(--line);background:var(--panel);border-radius:4px;font:600 15px/1 var(--px);max-width:180px}
+.acct .who-btn img{width:30px;height:30px;flex:none;object-fit:contain}
+.acct .who-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct .login-btn{min-height:44px;padding:6px 14px;font-size:15px}
+.acct .menu{min-width:210px}
+.acct .menu .hd{padding:8px 10px;font-size:13px;color:var(--soft);border-bottom:2px dashed color-mix(in srgb,var(--line) 25%,transparent);margin-bottom:4px}
+.auth{width:min(440px,100%)}
+.auth .tabs{margin:0 0 16px;display:grid;grid-template-columns:1fr 1fr}
+.auth .tabs button{min-height:44px}
+.fld{display:block;margin-bottom:14px}
+.fld>span{display:block;font:600 15px/1.2 var(--px);margin-bottom:6px}
+.fld .row{display:flex;gap:8px}
+.fld .inp{width:100%;flex:1}
+.fld .eye{flex:none;width:48px;border:3px solid var(--line);background:var(--panel);border-radius:4px;font:600 13px/1 var(--px)}
+.fld small{display:block;font-size:13px;color:var(--soft);margin-top:4px}
+.inp.bad{border-color:var(--red)}
+.err{display:none;margin:0 0 14px;padding:10px 12px;border:3px solid var(--red);background:color-mix(in srgb,var(--red) 14%,var(--panel));border-radius:4px;font-size:15px}
+.err.show{display:block}
+.meter{height:10px;border:2px solid var(--line);background:var(--bg);margin-top:6px;border-radius:2px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--red);transition:width .2s}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px;font-size:15px;cursor:pointer;margin-bottom:10px}
+.chk input{width:22px;height:22px;accent-color:var(--pu)}
+.auth .btn{width:100%;justify-content:center}
+.auth .note{font-size:13px;color:var(--soft);margin:14px 0 0}
+@media(max-width:520px){.logo .lt{display:none}.acct .who-btn span{display:none}.acct .who-btn{padding-right:6px}}
+.slots{display:grid;gap:4px}
+.slot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 0;border-bottom:2px dashed color-mix(in srgb,var(--line) 25%,transparent)}
+.slot img{width:52px;height:52px;object-fit:contain;border:2px solid var(--line);background:var(--bg);border-radius:3px;flex:none}
+.slot div{flex:1 1 120px}.slot .bt{display:flex;gap:6px;flex:none}.slot b{display:block;font-weight:500;font-size:15px}.slot small{color:var(--soft);font-size:13px}
+.slot button{min-height:40px;padding:6px 12px;border:2px solid var(--line);background:var(--coin);color:#22163f;font:600 14px/1 var(--px);border-radius:3px}
+.slot button.rs{background:var(--panel);color:var(--ink)}
+.slot button:disabled{opacity:.4;cursor:default}
+.mode{padding:10px 12px;border:2px solid var(--line);background:var(--bg);border-radius:3px;font-size:14px;margin:0 0 6px}
+.adm{background:var(--red);color:#fff;font:700 11px/1 var(--px);padding:3px 5px;border-radius:2px}
+.card .fav{position:absolute;right:10px;top:8px;font:700 22px/1 var(--px);color:#fff;text-shadow:2px 2px 0 #22163f}
+footer{background:#22163f;color:#efe9ff;border-top:3px solid var(--line)}
+html[data-mode=night] footer{background:#0b0720}
+footer .wrap{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center}
+footer small{color:#b6a8e6}
+.ground{height:24px;background:repeating-linear-gradient(90deg,var(--grass) 0 16px,color-mix(in srgb,var(--grass) 80%,#000) 16px 32px);border-top:3px solid var(--line)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav class="top" aria-label="หลัก">
+  <div class="wrap">
+    <a class="logo" href="#home"><img class="px" data-sprite="cloud" alt=""><span class="lt">Purple Cloud</span></a>
+    <button class="burger" id="burger" aria-label="เปิดเมนู" aria-expanded="false">≡</button>
+    <div class="links" id="links">
+      <a href="#home" class="on">หน้าแรก</a>
+      <a href="#featured">ไฮไลต์</a>
+      <a href="#works">ผลงาน</a>
+      <a href="#savefile">เครดิต</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="acct" id="acct"></div>
+    <label class="sw daynight tip" data-tip="สลับกลางวัน / กลางคืน">
+      <input type="checkbox" id="modeNav" aria-label="โหมดกลางคืน"><span class="tr"></span>
+    </label>
+  </div>
+</nav>
+
+<header class="band" id="home">
+  <div class="wrap hero">
+    <div>
+      <div class="label">▶ PLAYER 1 · STUDIO PORTFOLIO</div>
+      <h1>Purple Cloud <span>Studio</span></h1>
+      <p>รวมเกมและผลงานทุกชิ้นที่ฉันสร้าง ทั้งเกม HTML ที่เล่นบนเว็บได้ทันที เกม Roblox และงานวิศวกรรมจากห้องเรียน พร้อมเครดิตครบในที่เดียว</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="btn" href="#works">▶ PRESS START</a>
+        <a class="btn alt" href="#savefile">ดูเครดิต</a>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="stage box" aria-label="ฉากพิกเซลอาร์ตที่เปลี่ยนตามกลางวันกลางคืน">
+      <canvas id="world" width="200" height="125"></canvas><img id="sceneImg" alt="" hidden style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">    </div>
+  </div>
+</header>
+
+<section class="band" id="featured" style="padding-top:0">
+  <div class="wrap">
+    <div class="label">★ FEATURED</div>
+    <h2>ผลงานเด่น</h2>
+    <div class="car">
+      <div class="track" id="track" tabindex="0" aria-label="ผลงานเด่น เลื่อนซ้ายขวาได้"></div>
+      <button class="nav prev" id="prev" aria-label="ก่อนหน้า">◀</button>
+      <button class="nav next" id="next" aria-label="ถัดไป">▶</button>
+    </div>
+    <div class="dots" id="dots"></div>
+  </div>
+</section>
+
+<section class="band" id="works">
+  <div class="wrap">
+    <div class="crumb">หน้าแรก › <b>ผลงานทั้งหมด</b></div>
+    <div class="head">
+      <div><div class="label">◆ LEVEL SELECT</div><h2>เลือกด่าน (ผลงาน)</h2></div>
+      <div class="tabs" role="tablist" id="tabs"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<section class="band" id="savefile" style="padding-top:0">
+  <div class="wrap">
+    <div class="label">■ SAVE FILE</div>
+    <h2 style="margin-bottom:22px">เครดิตและบันทึกการพัฒนา</h2>
+    <div class="dash box">
+      <aside class="side" aria-label="เมนูห้องควบคุม">
+        <div class="who"><img class="px" data-sprite="hero" alt=""><div><b>Dev Player</b><small>Lv.11 · Purple Cloud</small></div></div>
+        <button class="on" data-pane="pCredits">เครดิต <span class="badge" id="credN">0</span></button>
+        <button data-pane="pTimeline">ไทม์ไลน์</button>
+        <button data-pane="pSettings">ตั้งค่า</button>
+      </aside>
+      <div>
+        <div class="pane" id="pCredits">
+          <h3 style="font-size:26px">ตารางเครดิต</h3>
+          <div class="tools">
+            <input class="inp grow" id="q" type="search" placeholder="ค้นหาชื่องาน หน้าที่ หรือเครื่องมือ…" aria-label="ค้นหา">
+            <select class="inp" id="fStatus" aria-label="กรองสถานะ">
+              <option value="">ทุกสถานะ</option><option value="done">เสร็จแล้ว</option><option value="wip">กำลังทำ</option><option value="plan">วางแผน</option>
+            </select>
+          </div>
+          <table class="tbl stack">
+            <thead><tr>
+              <th><button data-sort="name">ผลงาน ↕</button></th>
+              <th>หน้าที่</th>
+              <th>เครื่องมือ</th>
+              <th><button data-sort="status">สถานะ ↕</button></th>
+              <th class="r"><button data-sort="done">ความคืบหน้า ↕</button></th>
+              <th></th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="pager"><span id="pinfo"></span><div id="pbtn"></div></div>
+          <p style="font-size:13px;color:var(--soft);margin:12px 0 0">หน้าที่และความคืบหน้าเป็นข้อมูลตัวอย่าง แก้ได้ในอาร์เรย์ WORKS ในโค้ด</p>
+        </div>
+        <div class="pane" id="pTimeline" hidden>
+          <h3 style="font-size:26px">ไทม์ไลน์สตูดิโอ</h3>
+          <ul class="tl" id="tl"></ul>
+        </div>
+        <div class="pane" id="pSettings" hidden>
+          <h3 style="font-size:26px">ตั้งค่า (Options)</h3>
+          <div class="setrow"><div><b>โหมดกลางคืน</b><small>เปลี่ยนท้องฟ้า สี และฉากทั้งเว็บ</small></div><label class="sw"><input type="checkbox" id="modeSet" aria-label="โหมดกลางคืน"><span class="tr"></span></label></div>
+          <div class="setrow"><div><b>เสียงเอฟเฟกต์ 8-bit</b><small>เสียงบี๊ปเวลากดปุ่ม</small></div><label class="sw"><input type="checkbox" id="sfx" aria-label="เสียงเอฟเฟกต์"><span class="tr"></span></label></div>
+          <div class="setrow"><div><b>เส้นสแกนจอ CRT</b><small>ให้ฟีลจอทีวีเกมยุคเก่า</small></div><label class="sw"><input type="checkbox" id="scan" aria-label="เส้นสแกนจอ"><span class="tr"></span></label></div>
+          <div class="setrow"><div><b>ฉากเคลื่อนไหว</b><small>ตัวละครเดินและเมฆลอย</small></div><label class="sw"><input type="checkbox" id="anim" checked aria-label="ฉากเคลื่อนไหว"><span class="tr"></span></label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="faq" style="padding-top:0">
+  <div class="wrap">
+    <div class="label">? HELP</div>
+    <h2 style="margin-bottom:22px">คำถามที่พบบ่อย</h2>
+    <div class="acc">
+      <details class="box"><summary>Purple Cloud Studio คืออะไร?</summary><p>สตูดิโอเล็ก ๆ ของฉันเอง ทำเกมแนว HTML ที่เปิดเล่นบนเบราว์เซอร์ได้ทันที และเกมบน Roblox รวมถึงงานด้านวิศวกรรมอุตสาหการและการผลิตอัจฉริยะ</p></details>
+      <details class="box"><summary>เล่นเกมได้ที่ไหน?</summary><p>เกม HTML เปิดเล่นได้จากลิงก์ในหน้ารายละเอียดของแต่ละผลงาน ส่วนเกม Roblox ค้นชื่อเกมในแอป Roblox ได้เลย</p></details>
+      <details class="box"><summary>ใช้เครื่องมืออะไรสร้างเกม?</summary><p>HTML / CSS / JavaScript สำหรับเกมเว็บ, Roblox Studio และ Luau สำหรับเกม Roblox, สไปรต์ชีตที่วาดเอง และ AI เป็นผู้ช่วยในการพัฒนา</p></details>
+      <details class="box"><summary>ติดต่อร่วมงานหรือให้ฟีดแบ็กได้อย่างไร?</summary><p>ทักมาได้ที่เพจ Facebook "Purple Cloud Studio" ยินดีรับทุกคอมเมนต์และไอเดียเกมใหม่ ๆ</p></details>
+    </div>
+  </div>
+</section>
+
+<div class="ground"></div>
+<footer class="band">
+  <div class="wrap">
+    <a class="logo" href="#home" style="color:#fff"><img class="px" data-sprite="cloud" alt=""> Purple Cloud Studio</a>
+    <small>Facebook: Purple Cloud Studio · © 2026 ทุกผลงานสร้างโดย Purple Cloud Studio</small>
+    <a class="btn" href="#home">▲ กลับด้านบน</a>
+  </div>
+</footer>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal box">
+    <div class="mh"><h3 id="mTitle"></h3><button class="x" id="mx" aria-label="ปิด">✕</button></div>
+    <div class="mb" id="mBody"></div>
+    <div class="mf" id="mFoot"></div>
+  </div>
+</div>
+<div class="ov" id="authOv" role="dialog" aria-modal="true" aria-labelledby="aTitle">
+  <div class="modal box auth">
+    <div class="mh"><h3 id="aTitle">เข้าสู่ระบบ</h3><button class="x" id="ax" aria-label="ปิด">✕</button></div>
+    <div class="mb">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tLogin" aria-selected="true">เข้าสู่ระบบ</button>
+        <button role="tab" id="tReg" aria-selected="false">สมัครสมาชิก</button>
+      </div>
+      <form id="authForm" novalidate>
+        <div class="err" id="aErr" role="alert"></div>
+        <label class="fld"><span>ชื่อผู้ใช้</span>
+          <input class="inp" id="aName" autocomplete="username" maxlength="20" required>
+          <small id="nameHint" hidden>3–20 ตัวอักษร ใช้ภาษาไทย อังกฤษ ตัวเลข หรือ _ ได้ ห้ามเว้นวรรค</small>
+        </label>
+        <label class="fld"><span>รหัสผ่าน</span>
+          <div class="row"><input class="inp" id="aPass" type="password" autocomplete="current-password" required><button type="button" class="eye" data-eye="aPass" aria-label="แสดงรหัสผ่าน">ดู</button></div>
+          <div id="meterBox" hidden><div class="meter"><i id="meter"></i></div><small id="meterTxt">อย่างน้อย 6 ตัวอักษร</small></div>
+        </label>
+        <label class="fld" id="confBox" hidden><span>ยืนยันรหัสผ่าน</span>
+          <div class="row"><input class="inp" id="aConf" type="password" autocomplete="new-password"><button type="button" class="eye" data-eye="aConf" aria-label="แสดงรหัสผ่าน">ดู</button></div>
+        </label>
+        <label class="chk"><input type="checkbox" id="aRemember" checked> จดจำฉันไว้ในเครื่องนี้</label>
+        <button class="btn" id="aSubmit" type="submit">▶ เข้าสู่ระบบ</button>
+        <p class="note">บัญชีถูกเก็บไว้ในเบราว์เซอร์ของเครื่องนี้ และรหัสผ่านถูกเข้ารหัสก่อนบันทึก</p>
+      </form>
+    </div>
+  </div>
+</div>
+<input type="file" id="fileIn" accept="image/*" hidden>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script type="application/json" id="pc-baked">{}</script>
+<script>
+{
+const BODY0=document.body.innerHTML;
+/* ---------- PIXEL SPRITES ---------- */
+const PAL={k:'#22163f',p:'#6b3fd1',l:'#b79bff',w:'#ffffff',y:'#ffcc2e',o:'#ff9f1c',r:'#ef476f',g:'#4fb946',d:'#2e7d32',b:'#4aa8ff',c:'#8fd3ff',s:'#ffd7b0',n:'#8b5a2b',e:'#9aa0b5',m:'#5b5f73'};
+const SPR={
+cloud:["............","....kkkk....","...kllllk...","..kllwwllkk.",".kllllllllk.","kllllllllllk","klkkllllkklk","kllllllllllk","kpllllllllpk",".kpppppppkk.","..kkkkkkkk..","............"],
+egg:["....kkkk....","...kwwwwk...","..kwwwwwwk..","..kwwywwwk..",".kwwwwwwwwk.",".kwywwwwywk.",".kwwwwwwwwk.",".kyyyyyyyyk.",".kwwwwwwwwk.","..kwwwwwwk..","...kkkkkk...","............"],
+juice:["........k...","........k...","...kkkkkkk..","...koooook..","...kwwwwwk..","...kwgwgwk..","...kwwwwwk..","...kogggok..","...koooook..","...koooook..","...kkkkkkk..","............"],
+target:["....kkkk....","..kkrrrrkk..",".krrwwwwrrk.",".krwwrrwwrk.","krwrrkkrrwrk","krwrkwwkrwrk","krwrkwwkrwrk","krwrrkkrrwrk",".krwwrrwwrk.",".krrwwwwrrk.","..kkrrrrkk..","....kkkk...."],
+sword:["..........kk",".........kwk","........kwk.",".......kwk..","......kwk...",".....kwk....","..k.kwk.....","..kykwk.....","...kyk......","..kyk.k.....",".kyk........","kkk........."],
+heart:["............","..kk....kk..",".krrk..krrk.","krrwrkkrrrrk","krwrrrrrrrrk","krrrrrrrrrrk",".krrrrrrrrk.","..krrrrrrk..","...krrrrk...","....krrk....",".....kk.....","............"],
+cloudmmo:["............","..kk....kk..",".kllk..kllk.","kllllkkllllk","klllllllllk.",".kllpppplk..","..kkyyyykk..","....kyyk....","...kyyyyk...","...kyyyyk...","....kkkk....","............"],
+tree:["....kkkk....","..kkggggkk..",".kgggdgggdk.","kggdggggggk.","kgggggdgggk.",".kggdgggggk.","..kkggggkk..","....knnk....","...k.knnk...","..kyk.knnk..",".kyyk.knnk..","kkkkkkkkkkkk"],
+office:["...kkkkkk...","...kbbbbk...","...kbcbck...","..kkkkkkkk..","..kbcbcbck..","..kbbbbbbk..","..kbcbcbck..","..kbbbbbbk..","..kbcbcbck..","..kbbnnbbk..","..kbbnnbbk..","kkkkkkkkkkkk"],
+fist:["............","...kkkkkk...","..kssksksk..","..kssksksk..",".kksssssskk.","kssksssssssk","kssksssssssk",".kkssssssk..","..ksssssk...","..krrrrrk...","..krrrrrk...","..kkkkkkk..."],
+gear:["....kkkk....","..k.keek.k..",".keekeekeek.","..keeeeeek..","kkeekkkkeekk","keeek..keeek","keeek..keeek","kkeekkkkeekk","..keeeeeek..",".keekeekeek.","..k.keek.k..","....kkkk...."],
+globe:["....kkkk....","..kkbbbbkk..",".kbbggbbbbk.",".kbgggbbggk.","kbbggbbbgggk","kbbbbbbbbggk","kbbgbbbbbbbk","kbggggbbbbbk",".kbggbbbggk.",".kbbbbbbggk.","..kkbbbbkk..","....kkkk...."],
+hero:["...kkkkk....","..kpppppk...",".kppppppk...",".kkssssskk..",".ksskskssk..",".kssssssk...","..kkkkkkk...",".kllpppllk..",".kslppplsk..","..kllllk....","..kn..kn....","..kk..kk...."],
+star:["............",".....kk.....",".....yyk....","....kyyk....","kkkkyyyykkkk",".kyyyyyyyyk.","..kyyyyyyk..","..kyyyyyyk..",".kyyykkyyyk.",".kyyk..kyyk.",".kkk....kkk.","............"]};
+const cache={};
+function sprite(n){if(cache[n])return cache[n];const rows=SPR[n]||SPR.cloud;const c=document.createElement('canvas');c.width=c.height=12;const x=c.getContext('2d');rows.forEach((r,y)=>{for(let i=0;i<12;i++){const ch=r[i];if(ch&&ch!=='.'&&PAL[ch]){x.fillStyle=PAL[ch];x.fillRect(i,y,1,1)}}});return cache[n]=c.toDataURL()}
+const paintSprites=root=>root.querySelectorAll('img[data-sprite]').forEach(i=>{i.src=sprite(i.dataset.sprite)});
+
+/* ---------- DATA (แก้ไขผลงานได้ที่นี่) ---------- */
+const WORKS=[
+{id:'khun',name:'ท่านขุน – มหายุทธอาคม',cat:'html',sp:'sword',col:'#c0392b',desc:'Action RPG โอเพ่นเวิลด์แฟนตาซีไทย นำแสดงโดยท่านขุนอัตตรา ใช้สไปรต์ชีตที่วาดเอง',role:'Game design, Programming, Sprite',tool:'HTML / JS',status:'wip',done:70,feat:1},
+{id:'egg',name:'EGG RUSH',cat:'roblox',sp:'egg',col:'#2bb673',desc:'Egg / Pet Simulator ผสม Obby บนโลกแรก GREEN ISLAND พร้อม UI ภาษาไทย แบ่งพัฒนาเป็น 8 เฟส',role:'Game design, Scripting, UI',tool:'Roblox Studio / Luau',status:'wip',done:55,feat:1},
+{id:'tycoon',name:'MY COMPANY TYCOON',cat:'html',sp:'office',col:'#2d6cdf',desc:'เกมบริหารบริษัทในไฟล์ HTML เดียว มีคัตซีนคุณตี๋ขี่ Ninja 300 มาบริษัท',role:'Game design, Programming',tool:'HTML / JS',status:'done',done:100,feat:1},
+{id:'life',name:'LIFE CHOICES – เส้นทางชีวิต',cat:'html',sp:'heart',col:'#e0567a',desc:'เกมจำลองชีวิตแบบเลือกเส้นทาง ตั้งแต่วัยเด็กจนแก่ ใช้สไปรต์เดินที่วาดเอง',role:'Story, Programming, Sprite',tool:'HTML / JS',status:'wip',done:60,feat:1},
+{id:'juice',name:'JuiceWorld Tycoon',cat:'roblox',sp:'juice',col:'#f08c00',desc:'แมพ Tycoon โรงงานน้ำผลไม้ สร้างบ้านทีละขั้น ปลูกสวน ผลิตกล่องน้ำผลไม้ขายให้ NPC',role:'Level design, Scripting',tool:'Roblox Studio / Luau',status:'wip',done:50,feat:1},
+{id:'mmo',name:'ตำนานเมฆาม่วง',cat:'html',sp:'cloudmmo',col:'#7b4fd6',desc:'MMO-RPG สไตล์จีน มีดันเจียนและเควส ตัวเอกเป็นนักเวทผมดำใส่แว่น',role:'Game design, Programming',tool:'HTML / JS',status:'wip',done:40},
+{id:'fps',name:'FPS Arena',cat:'roblox',sp:'target',col:'#5b5f73',desc:'เกมยิงแนว Sniper Arena ยิงนัดเดียวจบ มี NPC ถือปืน มือตัวละคร และเสียงปืน',role:'Gameplay, Scripting',tool:'Roblox Studio / Luau',status:'wip',done:45},
+{id:'sky',name:'Sky Garden',cat:'roblox',sp:'tree',col:'#3aa35b',desc:'เกมปลูกผักบนเกาะลอยฟ้า มีมังกรบนต้นไม้กลางเกาะ และสะพานไม้เชื่อมเกาะฟาร์ม',role:'World building, Scripting',tool:'Roblox Studio / Luau',status:'wip',done:35},
+{id:'side',name:'SideFighter',cat:'roblox',sp:'fist',col:'#d9480f',desc:'เกมต่อสู้มุมมองด้านข้าง เวอร์ชัน Roblox ที่นำเข้า Roblox Studio และเทสเอง',role:'Porting, Testing',tool:'Roblox Studio',status:'wip',done:50},
+{id:'oee',name:'ระบบบันทึก OEE',cat:'other',sp:'gear',col:'#495057',desc:'โปรเจกต์ปี 4 วิศวกรรมอุตสาหการฯ ระบบบันทึก OEE สำหรับโรงงานปั๊มขึ้นรูป พร้อมรายงาน',role:'Research, System, Report',tool:'Industrial Eng.',status:'wip',done:65},
+{id:'web',name:'เว็บไซต์บน GitHub',cat:'other',sp:'globe',col:'#1c7ed6',desc:'เว็บไซต์ที่เผยแพร่ผ่าน GitHub',role:'Web dev',tool:'HTML / GitHub',status:'plan',done:20}];
+const CAT={html:'เกม HTML',roblox:'Roblox',other:'อื่น ๆ'};
+const STN={done:'เสร็จแล้ว',wip:'กำลังทำ',plan:'วางแผน'};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- SOUND + TOAST ---------- */
+let ac=null;
+function blip(f=660){if(!$('#sfx').checked)return;try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(ac.destination);o.start();o.frequency.setValueAtTime(f*1.5,ac.currentTime+.05);o.stop(ac.currentTime+.1)}catch(e){}}
+function $(s){return document.querySelector(s)}
+function toast(t,sub,undo){const el=document.createElement('div');el.className='toast box';el.innerHTML=`<img class="px" src="${sprite('star')}" alt=""><div><b>${esc(t)}</b><small>${esc(sub||'')}</small></div>`;if(undo){const b=document.createElement('button');b.textContent='เลิกทำ';b.onclick=()=>{undo();el.remove()};el.appendChild(b)}$('#toasts').appendChild(el);while($('#toasts').children.length>3)$('#toasts').firstElementChild.remove();setTimeout(()=>el.remove(),4000)}
+
+/* ---------- DAY / NIGHT ---------- */
+const root=document.documentElement;
+function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function setMode(night,announce){root.dataset.mode=night?'night':'day';$('#modeNav').checked=$('#modeSet').checked=night;store('pc-mode',night?'night':'day');if(announce){blip(night?330:880);toast(night?'โหมดกลางคืน':'โหมดกลางวัน',night?'ดาวขึ้นแล้ว พระจันทร์ออกมาเฝ้าเมือง':'พระอาทิตย์ขึ้นแล้ว ออกผจญภัยกัน!')}}
+const saved=load('pc-mode');
+setMode(saved?saved==='night':(root.dataset.theme==='dark'||(!root.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches)),false);
+$('#modeNav').onchange=e=>setMode(e.target.checked,true);
+$('#modeSet').onchange=e=>setMode(e.target.checked,true);
+$('#scan').onchange=e=>{document.body.classList.toggle('scan',e.target.checked);blip()};
+$('#sfx').onchange=e=>{if(e.target.checked)blip(990)};
+
+/* ---------- NAVBAR ---------- */
+$('#burger').onclick=()=>{const o=$('#links').classList.toggle('open');$('#burger').setAttribute('aria-expanded',o)};
+document.querySelectorAll('#links a').forEach(a=>a.onclick=()=>{$('#links').classList.remove('open')});
+const secs=['home','featured','works','savefile','faq'].map(id=>document.getElementById(id));
+const spy=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)document.querySelectorAll('#links a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id))}),{rootMargin:'-40% 0px -55% 0px'});
+secs.forEach(s=>spy.observe(s));
+
+/* ---------- STATS ---------- */
+const cnt=c=>WORKS.filter(w=>w.cat===c).length;
+$('#stats').innerHTML=[[WORKS.length,'ผลงานทั้งหมด'],[cnt('html'),'เกม HTML'],[cnt('roblox'),'เกม Roblox'],[WORKS.filter(w=>w.status==='done').length,'เคลียร์แล้ว']].map(([n,t])=>`<div class="stat box"><b>${n}</b><span>${t}</span></div>`).join('');
+
+/* ---------- IMAGES (ADMIN แก้ได้) ---------- */
+const SLOTS=[['logo','โลโก้สตูดิโอ','cloud'],['avatar','ตัวละคร / รูปโปรไฟล์','hero'],['scene','ฉากหน้าแรก',null]].concat(WORKS.map(w=>['w:'+w.id,w.name,w.sp]));
+let cloudSlots={},localSlots={},DB=null,AS=null,canCloud=false,imgRef=null,wq=Promise.resolve(),pendingSlot=null;
+try{localSlots=JSON.parse(localStorage.getItem('pc-img')||'{}')||{}}catch(e){}
+let baked={};try{baked=JSON.parse(document.getElementById('pc-baked').textContent||'{}')||{}}catch(e){}
+const okId=v=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,200}$/.test(v);
+const localOk=c=>c&&typeof c.src==='string'&&/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(c.src);
+function slotData(k){if(DB){const c=cloudSlots[k];if(c&&okId(c.id))return{src:'/_blob/'+c.id,px:!!c.px}}const c=!DB&&k in localSlots?localSlots[k]:baked[k];if(!c||typeof c!=='object')return null;return typeof c.src==='string'&&/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(c.src)?{src:c.src,px:!!c.px}:null}
+const imgOf=(k,sp)=>{const d=slotData(k);return d?d.src:(sp?sprite(sp):'')};
+const pxOf=k=>{const d=slotData(k);return d?d.px:true};
+const wImg=w=>`<img class="${pxOf('w:'+w.id)?'px':''}" src="${esc(imgOf('w:'+w.id,w.sp))}" alt="">`;
+const slotName=k=>(SLOTS.find(x=>x[0]===k)||[k,k])[1];
+
+/* ---------- CAROUSEL ---------- */
+const feats=WORKS.filter(w=>w.feat).slice(0,5);
+const track=$('#track');
+function renderSlides(){track.innerHTML=feats.map(w=>`<article class="slide" style="background:${w.col}"><div><span class="badge">${CAT[w.cat]}</span><h3>${esc(w.name)}</h3><p>${esc(w.desc)}</p><button class="btn" data-open="${w.id}">ดูรายละเอียด</button></div>${wImg(w)}</article>`).join('')}
+renderSlides();
+$('#dots').innerHTML=feats.map((w,i)=>`<button aria-label="สไลด์ ${i+1}"></button>`).join('');
+const dots=[...document.querySelectorAll('#dots button')];
+let cur=0;
+const go=i=>{cur=(i+feats.length)%feats.length;track.scrollTo({left:track.clientWidth*cur,behavior:'smooth'})};
+track.addEventListener('scroll',()=>{cur=Math.round(track.scrollLeft/track.clientWidth);dots.forEach((d,i)=>d.classList.toggle('on',i===cur))},{passive:true});
+dots.forEach((d,i)=>d.onclick=()=>{go(i);blip()});dots[0].classList.add('on');
+$('#prev').onclick=()=>{go(cur-1);blip()};$('#next').onclick=()=>{go(cur+1);blip()};
+track.onkeydown=e=>{if(e.key==='ArrowRight'){e.preventDefault();go(cur+1)}if(e.key==='ArrowLeft'){e.preventDefault();go(cur-1)}};
+let hold=false;['mouseenter','focusin','touchstart'].forEach(ev=>track.parentNode.addEventListener(ev,()=>hold=true,{passive:true}));['mouseleave','focusout'].forEach(ev=>track.parentNode.addEventListener(ev,()=>hold=false));
+const auto=setInterval(()=>{if(!hold&&!document.hidden&&$('#anim').checked)go(cur+1)},5000);
+
+/* ---------- AUTH: LOGIN / REGISTER ---------- */
+// เก็บบัญชีใน localStorage ของเบราว์เซอร์ รหัสผ่านถูกแฮชด้วย PBKDF2-SHA256 + salt ไม่เก็บรหัสจริง
+const mem={};
+const sget=(st,k)=>{try{return st.getItem(k)}catch(e){return mem[k]??null}};
+const sset=(st,k,v)=>{try{st.setItem(k,v)}catch(e){mem[k]=v}};
+const sdel=(st,k)=>{try{st.removeItem(k)}catch(e){delete mem[k]}};
+const LS=(()=>{try{return localStorage}catch(e){return null}})(),SS=(()=>{try{return sessionStorage}catch(e){return null}})();
+const users=()=>{try{return JSON.parse(sget(LS,'pc-users')||'{}')}catch(e){return {}}};
+const saveUsers=u=>sset(LS,'pc-users',JSON.stringify(u));
+const keyOf=n=>n.trim().toLowerCase();
+const b64=buf=>btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function hashPw(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);return b64(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},k,256))}
+function same(a,b){if(a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0}
+function me(){const k=sget(SS,'pc-session')||sget(LS,'pc-session');if(!k)return null;const u=users()[k];return u?Object.assign({key:k},u):null}
+function setSession(k,remember){sdel(SS,'pc-session');sdel(LS,'pc-session');sset(remember?LS:SS,'pc-session',k)}
+function logout(){const u=me();sdel(SS,'pc-session');sdel(LS,'pc-session');refreshUser();toast('ออกจากระบบแล้ว',u?'แล้วพบกันใหม่ '+u.name:'');blip(330)}
+function toggleFav(id){const u=me();if(!u){openAuth('login','เข้าสู่ระบบก่อนเพื่อกดถูกใจผลงาน');return}const all=users(),rec=all[u.key];const i=rec.favs.indexOf(id);if(i<0)rec.favs.push(id);else rec.favs.splice(i,1);saveUsers(all);renderTabs();renderCards();const w=WORKS.find(x=>x.id===id);toast(i<0?'ถูกใจแล้ว ♥':'เลิกถูกใจแล้ว',w.name);blip(i<0?990:440)}
+function refreshUser(){const u=me(),a=$('#acct');
+if(u){a.innerHTML=`<button class="who-btn" id="whoBtn" aria-haspopup="true" aria-expanded="false"><img class="${pxOf('avatar')?'px':''}" src="${esc(imgOf('avatar','hero'))}" alt=""><span></span>${u.key==='admin'?'<b class="adm">ADMIN</b>':''}</button><div class="menu box" role="menu" id="whoMenu"><div class="hd">ล็อกอินเป็น <b></b></div><button role="menuitem" id="goFav">♥ ผลงานที่ชอบ (${u.favs.length})</button>${u.key==='admin'?'<button role="menuitem" id="goAdmin">✎ จัดการภาพทั้งหมด</button>':''}<button role="menuitem" class="del" id="doOut">⏻ ออกจากระบบ</button></div>`;
+a.querySelector('.who-btn span').textContent=u.name;a.querySelector('.hd b').textContent=u.name;
+$('#whoBtn').onclick=e=>{e.stopPropagation();const m=$('#whoMenu'),o=!m.classList.contains('open');closeMenus();m.classList.toggle('open',o);$('#whoBtn').setAttribute('aria-expanded',o);blip()};
+$('#goFav').onclick=()=>{closeMenus();tab='fav';renderTabs();renderCards();location.hash='works'};
+$('#doOut').onclick=()=>{closeMenus();logout()};if($('#goAdmin'))$('#goAdmin').onclick=()=>{closeMenus();openAdmin()};
+$('.side .who b').textContent=u.name;$('.side .who small').textContent='ถูกใจ '+u.favs.length+' ผลงาน';}
+else{a.innerHTML='<button class="btn login-btn" id="loginBtn">เข้าสู่ระบบ</button>';$('#loginBtn').onclick=()=>openAuth('login');$('.side .who b').textContent='Guest';$('.side .who small').textContent='ยังไม่ได้เข้าสู่ระบบ'}
+if($('#tabs').children.length){renderTabs();renderCards()}}
+let aMode='login',fails=0,lockUntil=0,authFrom=null;
+function setAuthMode(m){aMode=m;const reg=m==='reg';$('#tLogin').setAttribute('aria-selected',!reg);$('#tReg').setAttribute('aria-selected',reg);$('#aTitle').textContent=reg?'สมัครสมาชิก':'เข้าสู่ระบบ';$('#aSubmit').textContent=reg?'▶ สร้างบัญชี':'▶ เข้าสู่ระบบ';$('#confBox').hidden=$('#meterBox').hidden=$('#nameHint').hidden=!reg;$('#aPass').autocomplete=reg?'new-password':'current-password';showErr('');document.querySelectorAll('#authForm .inp').forEach(i=>i.classList.remove('bad'))}
+function showErr(t,field){$('#aErr').textContent=t;$('#aErr').classList.toggle('show',!!t);if(field){field.classList.add('bad');field.focus()}}
+function openAuth(m,msg){authFrom=document.activeElement;closeModal();setAuthMode(m||'login');$('#authForm').reset();$('#aRemember').checked=true;$('#meter').style.width='0';if(msg)showErr(msg);$('#authOv').classList.add('open');setTimeout(()=>$('#aName').focus(),50);blip(520)}
+function closeAuth(){if(!$('#authOv').classList.contains('open'))return;$('#authOv').classList.remove('open');authFrom&&authFrom.focus&&authFrom.focus()}
+$('#ax').onclick=closeAuth;$('#authOv').onclick=e=>{if(e.target.id==='authOv')closeAuth()};
+$('#tLogin').onclick=()=>{setAuthMode('login');blip()};$('#tReg').onclick=()=>{setAuthMode('reg');blip()};
+document.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{const i=document.getElementById(b.dataset.eye),s=i.type==='password';i.type=s?'text':'password';b.textContent=s?'ซ่อน':'ดู';b.setAttribute('aria-label',s?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน')});
+$('#aPass').oninput=()=>{if(aMode!=='reg')return;const p=$('#aPass').value;let s=0;if(p.length>=6)s++;if(p.length>=10)s++;if(/[A-Z]/.test(p)&&/[a-z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;const L=[['สั้นเกินไป','#ef476f'],['อ่อน','#ef476f'],['พอใช้','#ffcc2e'],['ดี','#ffcc2e'],['แข็งแรง','#4fb946'],['แข็งแรงมาก','#4fb946']][s];$('#meter').style.width=(p?Math.max(10,s*20):0)+'%';$('#meter').style.background=L[1];$('#meterTxt').textContent=p?'ความแข็งแรง: '+L[0]:'อย่างน้อย 6 ตัวอักษร'};
+document.querySelectorAll('#authForm .inp').forEach(i=>i.addEventListener('input',()=>{i.classList.remove('bad');if(Date.now()>lockUntil)showErr('')}));
+$('#authForm').onsubmit=async e=>{e.preventDefault();showErr('');
+const nameEl=$('#aName'),passEl=$('#aPass'),name=nameEl.value.trim(),pw=passEl.value,k=keyOf(name);
+if(!crypto.subtle){showErr('เบราว์เซอร์นี้ไม่รองรับการเข้ารหัส ลองเปิดผ่าน https');return}
+if(!name)return showErr('กรุณากรอกชื่อผู้ใช้',nameEl);
+if(!pw)return showErr('กรุณากรอกรหัสผ่าน',passEl);
+const btn=$('#aSubmit');btn.disabled=true;const label=btn.textContent;btn.textContent='กำลังโหลด…';
+try{const all=users();
+if(aMode==='reg'){
+ if(!/^[A-Za-z0-9_฀-๿]{3,20}$/.test(name))return showErr('ชื่อผู้ใช้ต้องยาว 3–20 ตัวอักษร ใช้ไทย อังกฤษ ตัวเลข หรือ _ เท่านั้น',nameEl);
+ if(all[k])return showErr('ชื่อนี้มีคนใช้แล้ว ลองชื่ออื่น',nameEl);
+ if(pw.length<6)return showErr('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',passEl);
+ if(pw!==$('#aConf').value)return showErr('รหัสผ่านทั้งสองช่องไม่ตรงกัน',$('#aConf'));
+ const salt=crypto.getRandomValues(new Uint8Array(16));
+ all[k]={name,salt:b64(salt),hash:await hashPw(pw,salt),created:Date.now(),favs:[]};saveUsers(all);
+ setSession(k,$('#aRemember').checked);closeAuth();refreshUser();toast('สมัครสมาชิกสำเร็จ!','ยินดีต้อนรับ '+name+' สู่ Purple Cloud');blip(990);
+}else{
+ const wait=Math.ceil((lockUntil-Date.now())/1000);if(wait>0)return showErr(`ใส่รหัสผิดหลายครั้ง รออีก ${wait} วินาทีแล้วลองใหม่`);
+ const u=all[k];const h=u?await hashPw(pw,unb64(u.salt)):await hashPw(pw,new Uint8Array(16));
+ if(!u||!same(h,u.hash)){fails++;if(fails>=5){lockUntil=Date.now()+30000;fails=0;return showErr('ใส่ผิด 5 ครั้งแล้ว ระบบล็อกไว้ 30 วินาที')}return showErr('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',passEl)}
+ fails=0;setSession(k,$('#aRemember').checked);closeAuth();refreshUser();toast('เข้าสู่ระบบสำเร็จ','สวัสดี '+u.name+'!');blip(990);
+}}catch(err){showErr('เกิดข้อผิดพลาด ลองใหม่อีกครั้ง')}finally{btn.disabled=false;btn.textContent=label}};
+
+/* ---------- TABS + CARDS ---------- */
+const TABS=[['all','ทั้งหมด'],['html','เกม HTML'],['roblox','Roblox'],['other','อื่น ๆ']];
+let tab=load('pc-tab')||'all';
+function renderTabs(){const u=me(),t=TABS.concat(u?[['fav','♥ ที่ชอบ']]:[]);if(!u&&tab==='fav')tab='all';$('#tabs').innerHTML=t.map(([k,l])=>`<button role="tab" aria-selected="${k===tab}" data-tab="${k}">${l}<span>${k==='all'?WORKS.length:k==='fav'?u.favs.length:cnt(k)}</span></button>`).join('')}
+function renderCards(){const u=me(),favs=u?u.favs:[];const list=WORKS.filter(w=>tab==='all'||(tab==='fav'?favs.includes(w.id):w.cat===tab));$('#grid').innerHTML=list.length?list.map(w=>`<button class="card box" data-open="${w.id}"><div class="art" style="background:${w.col}"><span class="badge ${w.cat}">${CAT[w.cat]}</span>${favs.includes(w.id)?'<span class="fav" aria-label="ที่ชอบ">♥</span>':''}${wImg(w)}</div><div class="body"><h3>${esc(w.name)}</h3><p>${esc(w.desc)}</p><span class="more">ดูรายละเอียด ▶</span></div></button>`).join(''):`<div class="empty box" style="grid-column:1/-1">ยังไม่มีผลงานที่ชอบ เปิดดูผลงานแล้วกด ♥ ถูกใจ</div>`}
+$('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;tab=b.dataset.tab;store('pc-tab',tab);blip();renderTabs();$('#grid').innerHTML='<div class="skel box"></div><div class="skel box"></div><div class="skel box"></div>';setTimeout(renderCards,280)};
+renderTabs();renderCards();refreshUser();
+
+/* ---------- MODAL ---------- */
+let lastFocus=null;
+function openModal(title,body,foot){lastFocus=document.activeElement;$('#mTitle').textContent=title;$('#mBody').innerHTML=body;$('#mFoot').innerHTML='';foot.forEach(([t,cls,fn])=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=t;b.onclick=()=>{fn&&fn();closeModal()};$('#mFoot').appendChild(b)});$('#ov').classList.add('open');$('#mx').focus();blip(520)}
+function closeModal(){$('#ov').classList.remove('open');lastFocus&&lastFocus.focus&&lastFocus.focus()}
+$('#mx').onclick=closeModal;$('#ov').onclick=e=>{if(e.target.id==='ov')closeModal()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAuth();closeMenus()}});
+function showWork(id){const w=WORKS.find(x=>x.id===id);if(!w)return;openModal(w.name,`<div class="art" style="background:${w.col}">${wImg(w)}</div><span class="badge ${w.cat}">${CAT[w.cat]}</span> <span class="st ${w.status}">${STN[w.status]}</span><p>${esc(w.desc)}</p><dl class="kv"><dt>หน้าที่</dt><dd>${esc(w.role)}</dd><dt>เครื่องมือ</dt><dd>${esc(w.tool)}</dd><dt>ความคืบหน้า</dt><dd>${w.done}%</dd><dt>สร้างโดย</dt><dd>Purple Cloud Studio</dd></dl>`,[['ปิด','alt'],['คัดลอกชื่อ','alt',()=>copy(w.name)]].concat(isAdmin()?[['เปลี่ยนภาพ','alt',()=>pickFile('w:'+w.id)]]:[]).concat([[me()&&me().favs.includes(w.id)?'♥ เลิกถูกใจ':'♡ ถูกใจ','',()=>toggleFav(w.id)]]))}
+document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o)showWork(o.dataset.open)});
+function copy(t){try{navigator.clipboard.writeText(t).then(()=>toast('คัดลอกแล้ว',t),()=>toast('คัดลอกไม่ได้','เบราว์เซอร์ไม่อนุญาต'))}catch(e){toast('คัดลอกไม่ได้','เบราว์เซอร์ไม่อนุญาต')}}
+
+/* ---------- SIDEBAR ---------- */
+document.querySelectorAll('.side [data-pane]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.side [data-pane]').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.pane').forEach(p=>p.hidden=p.id!==b.dataset.pane);blip()});
+
+/* ---------- DATA TABLE + DROPDOWN ---------- */
+let hidden=new Set(),sortK='name',sortD=1,page=1;const PER=5;
+function rows(){const q=$('#q').value.trim().toLowerCase(),f=$('#fStatus').value;return WORKS.filter(w=>!hidden.has(w.id)&&(!f||w.status===f)&&(!q||(w.name+w.role+w.tool).toLowerCase().includes(q))).sort((a,b)=>{const x=a[sortK],y=b[sortK];return (typeof x==='number'?x-y:String(x).localeCompare(String(y),'th'))*sortD})}
+function renderTable(){const r=rows(),pages=Math.max(1,Math.ceil(r.length/PER));page=Math.min(page,pages);const slice=r.slice((page-1)*PER,page*PER);$('#credN').textContent=WORKS.length-hidden.size;
+$('#tbody').innerHTML=slice.length?slice.map(w=>`<tr><td><b style="font-weight:500">${esc(w.name)}</b></td><td>${esc(w.role)}</td><td>${esc(w.tool)}</td><td><span class="st ${w.status}">${STN[w.status]}</span></td><td class="r">${w.done}%</td><td class="act"><div class="dd"><button aria-label="ตัวเลือก ${esc(w.name)}" aria-haspopup="true" data-dd="${w.id}">⋯</button><div class="menu box" role="menu"><button role="menuitem" data-act="view" data-id="${w.id}">👁 ดูรายละเอียด</button><button role="menuitem" data-act="copy" data-id="${w.id}">⧉ คัดลอกชื่อ</button><button role="menuitem" class="del" data-act="hide" data-id="${w.id}">✕ ซ่อนจากตาราง</button></div></div></td></tr>`).join(''):`<tr><td colspan="6" class="empty">ไม่พบผลงานที่ตรงกับคำค้นหา</td></tr>`;
+$('#pinfo').textContent=r.length?`แสดง ${(page-1)*PER+1}–${(page-1)*PER+slice.length} จาก ${r.length}`:'ไม่มีข้อมูล';
+let h=`<button ${page<=1?'disabled':''} data-pg="${page-1}" aria-label="หน้าก่อน">‹</button>`;for(let i=1;i<=pages;i++)h+=`<button class="${i===page?'on':''}" data-pg="${i}">${i}</button>`;h+=`<button ${page>=pages?'disabled':''} data-pg="${page+1}" aria-label="หน้าถัดไป">›</button>`;$('#pbtn').innerHTML=h}
+$('#q').oninput=()=>{page=1;renderTable()};$('#fStatus').onchange=()=>{page=1;renderTable()};
+$('#pbtn').onclick=e=>{const b=e.target.closest('[data-pg]');if(b&&!b.disabled){page=+b.dataset.pg;renderTable();blip()}};
+document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{const k=b.dataset.sort;sortD=sortK===k?-sortD:1;sortK=k;renderTable();blip()});
+function closeMenus(){document.querySelectorAll('.menu.open').forEach(m=>m.classList.remove('open'))}
+$('#tbody').onclick=e=>{const t=e.target.closest('[data-dd]');if(t){e.stopPropagation();const m=t.nextElementSibling,was=m.classList.contains('open');closeMenus();if(!was){m.classList.add('open');m.querySelector('button').focus()}blip();return}
+const a=e.target.closest('[data-act]');if(!a)return;e.stopPropagation();closeMenus();const w=WORKS.find(x=>x.id===a.dataset.id);
+if(a.dataset.act==='view')showWork(w.id);
+if(a.dataset.act==='copy')copy(w.name);
+if(a.dataset.act==='hide')openModal('ซ่อน '+w.name+'?',`<p>ผลงานนี้จะถูกซ่อนจากตารางเครดิตชั่วคราว (ไม่ได้ลบข้อมูลจริง) กดเลิกทำได้จากแจ้งเตือนด้านล่าง</p>`,[['ยกเลิก','alt'],['ซ่อนผลงาน','danger',()=>{hidden.add(w.id);renderTable();toast('ซ่อนแล้ว',w.name,()=>{hidden.delete(w.id);renderTable()})}]])};
+document.addEventListener('click',e=>{if(!e.target.closest('.dd'))closeMenus()});
+renderTable();
+
+/* ---------- TIMELINE ---------- */
+$('#tl').innerHTML=[['เปิดตัว Purple Cloud Studio','ตั้งชื่อสตูดิโอและเริ่มทำเพจ Facebook'],['MY COMPANY TYCOON','เกม HTML ไฟล์เดียวที่ทำเสร็จเป็นเกมแรก ๆ'],['EGG RUSH เข้าสู่ Roblox','เริ่มโลก GREEN ISLAND แบ่งพัฒนา 8 เฟส'],['FPS Arena + JuiceWorld','ขยายสู่เกมยิงและเกม Tycoon บน Roblox'],['ท่านขุน + LIFE CHOICES','เกม HTML ที่ใช้สไปรต์ชีตวาดเอง'],['Sky Garden','เกมปลูกผักบนเกาะลอยฟ้า โปรเจกต์ล่าสุด']].map(([b,s])=>`<li><b>${b}</b><span>${s}</span></li>`).join('');
+
+/* ---------- PIXEL WORLD ---------- */
+const cv=$('#world'),x=cv.getContext('2d');const W=200,H=125;
+const heroImg=new Image();heroImg.src=sprite('hero');
+const cloudImg=new Image();cloudImg.src=sprite('cloud');
+const stars=Array.from({length:40},(_,i)=>[(i*53)%W,(i*29)%70,i%3]);
+const clouds=[[20,18,2],[110,10,3],[160,30,2],[70,36,1]];
+let t=0;
+function hill(off,amp,base,col,sp){x.fillStyle=col;for(let i=0;i<W;i+=2){const h=Math.round(base-amp*Math.sin((i+off*sp)/22)-amp*.5*Math.sin((i+off*sp)/9));x.fillRect(i,h,2,H-h)}}
+function draw(){const night=root.dataset.mode==='night';
+x.fillStyle=night?'#151042':'#8fd3ff';x.fillRect(0,0,W,H);
+x.fillStyle=night?'#221a5c':'#b9e6ff';x.fillRect(0,50,W,40);
+if(night){stars.forEach(([sx,sy,k])=>{if((Math.floor(t/20)+k)%3){x.fillStyle=k?'#fff':'#ffd84d';x.fillRect(sx,sy,1,1)}});x.fillStyle='#fff6c8';x.fillRect(158,12,14,14);x.fillRect(156,14,18,10);x.fillStyle='#151042';x.fillRect(164,10,12,12)}
+else{x.fillStyle='#ffcc2e';x.fillRect(160,10,16,16);x.fillRect(158,12,20,12);x.fillRect(162,8,12,20);x.fillStyle='#fff3a6';x.fillRect(163,13,6,4)}
+clouds.forEach(([cx,cy,s],i)=>{const px=((cx+t*.08*(s))%(W+40))-30;x.globalAlpha=night?.75:1;x.drawImage(cloudImg,Math.round(px),cy,12*s,12*s);x.globalAlpha=1});
+hill(t*.2,8,78,night?'#2a2170':'#9a74ff',1);
+hill(t*.5,6,92,night?'#1f5a33':'#5fcf55',1);
+for(let i=0;i<W;i+=8){const tx=(i-Math.floor(t*.9)%8);x.fillStyle=night?'#2f7d3a':'#4fb946';x.fillRect(tx,103,8,4);x.fillStyle=night?'#4a2f1a':'#8b5a2b';x.fillRect(tx,107,8,18);x.fillStyle=night?'#3a2414':'#6d4320';x.fillRect(tx+1,111,2,2);x.fillRect(tx+5,117,2,2)}
+const bob=Math.floor(t/8)%2;x.drawImage(heroImg,70,91-bob,12,12);
+if(night){x.fillStyle='#ffd84d';[[30,70],[120,82],[180,64]].forEach(([fx,fy],i)=>{if((Math.floor(t/15)+i)%2)x.fillRect(fx+Math.round(Math.sin(t/20+i)*3),fy,1,1)})}}
+let raf;function loop(){t++;draw();raf=requestAnimationFrame(loop)}
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function startStop(){cancelAnimationFrame(raf);if($('#anim').checked&&!still)loop();else draw()}
+$('#anim').onchange=()=>{startStop();blip()};
+new MutationObserver(()=>{if(!$('#anim').checked||still)draw()}).observe(root,{attributes:true,attributeFilter:['data-mode']});
+heroImg.onload=cloudImg.onload=()=>draw();
+startStop();
+/* ---------- ADMIN: เปลี่ยนภาพ ---------- */
+const isAdmin=()=>{const u=me();return !!u&&u.key==='admin'};
+function applyImages(){
+ document.querySelectorAll('img[data-sprite]').forEach(i=>{const n=i.dataset.sprite,k=n==='cloud'?'logo':n==='hero'?'avatar':null;i.src=k?imgOf(k,n):sprite(n);i.classList.toggle('px',k?pxOf(k):true)});
+ heroImg.src=imgOf('avatar','hero');
+ const sc=slotData('scene'),si=$('#sceneImg');si.hidden=!sc;if(sc){si.src=sc.src;si.classList.toggle('px',sc.px)}else si.removeAttribute('src');
+ renderSlides();refreshUser();if($('#ov').classList.contains('open')&&$('#mTitle').textContent==='จัดการภาพ (ADMIN)')renderAdmin();
+}
+function pickFile(k){if(!isAdmin())return;pendingSlot=k;const f=$('#fileIn');f.value='';f.click()}
+$('#fileIn').onchange=()=>{const f=$('#fileIn').files[0];if(f&&pendingSlot)setSlot(pendingSlot,f)};
+const pxPref=()=>{try{return localStorage.getItem('pc-pxopt')!=='0'}catch(e){return true}};
+function processImg(file,k,pixel){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('decode'))};im.onload=()=>{URL.revokeObjectURL(url);const scene=k==='scene',max=pixel?(scene?200:48):(scene?1280:512),sc=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);if(pixel){const d=g.getImageData(0,0,c.width,c.height),a=d.data;for(let i=0;i<a.length;i+=4){a[i]=Math.round(a[i]/36)*36;a[i+1]=Math.round(a[i+1]/36)*36;a[i+2]=Math.round(a[i+2]/36)*36;a[i+3]=a[i+3]<128?0:255}g.putImageData(d,0,0)}res(c)};im.src=url})}
+async function saveCloud(next){wq=wq.catch(()=>{}).then(()=>imgRef.set({slots:next,updated:Date.now()}));await wq;cloudSlots=next}
+function saveLocal(next){if(!LS)throw new Error('nostore');LS.setItem('pc-img',JSON.stringify(next));localSlots=next}
+let busy=false;
+async function setSlot(k,file){if(!isAdmin()||busy)return;
+ if(!/^image\//.test(file.type)){toast('ไฟล์นี้ไม่ใช่รูปภาพ','ใช้ PNG, JPG, GIF หรือ WebP');return}
+ if(file.size>15e6){toast('ไฟล์ใหญ่เกินไป','ขนาดไม่เกิน 15 MB');return}
+ if(DB&&!canCloud){toast('ไม่มีสิทธิ์แก้ไข','ต้องเปิดเว็บด้วยบัญชี Claude ของเจ้าของ');return}
+ const pixel=pxPref();busy=true;if(DB)toast('กำลังอัปโหลด…',slotName(k));
+ try{const c=await processImg(file,k,pixel);
+  if(DB){const blob=await new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error('blob')),'image/png'));const a=await AS.upload(blob);if(!okId(a.id))throw new Error('id');const old=cloudSlots[k];await saveCloud(Object.assign({},cloudSlots,{[k]:{id:a.id,px:pixel}}));if(old&&okId(old.id))AS.delete(old.id).catch(()=>{})}
+  else{try{saveLocal(Object.assign({},localSlots,{[k]:{src:pixel?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.82),px:pixel}}))}catch(e){toast('พื้นที่เก็บในเครื่องเต็ม','ลองติ๊กแปลงเป็นพิกเซล หรือคืนค่าบางภาพก่อน');return}}
+  applyImages();toast('เปลี่ยนภาพแล้ว',slotName(k));blip(990)}
+ catch(e){toast('เปลี่ยนภาพไม่สำเร็จ',e&&e.code==='quota_exceeded'?'พื้นที่เก็บภาพเต็มแล้ว':'ลองใหม่อีกครั้ง หรือใช้ไฟล์อื่น')}
+ finally{busy=false}}
+async function resetSlot(k){if(!isAdmin()||busy)return;busy=true;
+ try{if(DB){if(!canCloud)return;const old=cloudSlots[k],next=Object.assign({},cloudSlots);delete next[k];await saveCloud(next);if(old&&okId(old.id))AS.delete(old.id).catch(()=>{})}
+  else{const next=Object.assign({},localSlots);if(baked[k])next[k]=null;else delete next[k];saveLocal(next)}
+  applyImages();toast('คืนค่าภาพเดิมแล้ว',slotName(k))}
+ catch(e){toast('คืนค่าไม่สำเร็จ','ลองใหม่อีกครั้ง')}finally{busy=false}}
+function renderAdmin(){const mode=DB?(canCloud?'บันทึกขึ้นคลาวด์: ทุกคนที่เปิดเว็บนี้จะเห็นภาพใหม่':'บัญชี Claude ที่เปิดอยู่ไม่มีสิทธิ์แก้ไขเว็บนี้ จึงเปลี่ยนภาพไม่ได้'):'บันทึกในเบราว์เซอร์นี้เท่านั้น: คนอื่นยังเห็นภาพเดิม';
+ $('#mBody').innerHTML=`<p class="mode">${mode}</p><label class="chk"><input type="checkbox" id="pxOpt" ${pxPref()?'checked':''}> แปลงรูปที่อัปโหลดเป็นพิกเซลอาร์ตอัตโนมัติ</label>${DB?'':`<div class="mode"><b>ใช้บน Google Sites?</b> เปลี่ยนภาพเสร็จแล้วกดปุ่มนี้ แล้วนำโค้ดไปวางทับโค้ดเดิมใน Google Sites ทุกคนจะเห็นภาพใหม่<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="expBtn" type="button">⧉ คัดลอกโค้ดเว็บทั้งหมด</button></div><textarea id="expTxt" class="inp" readonly hidden style="width:100%;height:120px;margin-top:8px;font:12px monospace"></textarea></div>`}<div class="slots">${SLOTS.map(([k,n,sp])=>{const has=!!slotData(k);return `<div class="slot"><img class="${pxOf(k)?'px':''}" src="${esc(imgOf(k,sp)||'data:image/gif;base64,R0lGODlhAQABAAAAACw=')}" alt=""><div><b>${esc(n)}</b><small>${has?'ภาพที่อัปโหลด':(k==='scene'?'ฉากพิกเซลที่ขยับได้ (ค่าเริ่มต้น)':'ภาพพิกเซลเริ่มต้น')}</small></div><span class="bt"><button data-up="${esc(k)}">เปลี่ยน</button><button class="rs" data-rs="${esc(k)}" ${has?'':'disabled'}>คืนค่า</button></span></div>`}).join('')}</div>`;
+ $('#pxOpt').onchange=e=>{try{localStorage.setItem('pc-pxopt',e.target.checked?'1':'0')}catch(err){}};
+ if($('#expBtn'))$('#expBtn').onclick=exportCode;
+ $('#mBody').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>pickFile(b.dataset.up));
+ $('#mBody').querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>resetSlot(b.dataset.rs))}
+function exportCode(){const eff={};SLOTS.forEach(([k])=>{const c=k in localSlots?localSlots[k]:baked[k];if(localOk(c))eff[k]={src:c.src,px:!!c.px}});
+ const json=JSON.stringify(eff).replace(/</g,'\\u003c');
+ const body=BODY0.replace(/(<script type="application\/json" id="pc-baked">)[\s\S]*?(<\/script>)/,(m,a,b)=>a+json+b);
+ const font=document.querySelector('link[href*="Pixelify"]'),st=document.getElementById('pc-style');
+ const code='<!DOCTYPE html>\n<html lang="th">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>Purple Cloud Studio</title>\n'+(font?font.outerHTML:'')+'\n'+st.outerHTML+'\n</head>\n<body>'+body+'</body>\n</html>\n';
+ const ta=$('#expTxt');ta.value=code;ta.hidden=false;ta.focus();ta.select();
+ const kb=Math.round(code.length/1024);
+ try{navigator.clipboard.writeText(code).then(()=>toast('คัดลอกโค้ดแล้ว',kb+' KB · ไปวางทับใน Google Sites'),()=>toast('กดค้างในกล่องแล้วเลือกคัดลอก',kb+' KB'))}catch(e){toast('กดค้างในกล่องแล้วเลือกคัดลอก',kb+' KB')}}
+function openAdmin(){if(!isAdmin())return;openModal('จัดการภาพ (ADMIN)','',[['ปิด','alt']]);renderAdmin()}
+applyImages();
+(async()=>{try{const C=window.claude;if(!C||!C.use)return;const db=await C.use('db');if(!db)return;const [as,us]=await Promise.all([C.use('assets'),C.use('user')]);DB=db;AS=as;
+ try{canCloud=!!as&&(us&&us.canEdit?!!(await us.canEdit()):true)}catch(e){canCloud=!!as}
+ imgRef=db.doc('site/images');imgRef.onSnapshot(s=>{const d=s.exists?s.data():null;cloudSlots=d&&d.slots&&typeof d.slots==='object'?d.slots:{};applyImages()},()=>{});applyImages()}catch(e){}})();
+}
+</script>
+</body>
+</html>
