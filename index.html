@@ -128,7 +128,7 @@ html[data-mode=night] .side{background:#0b0720}
 .side button.on{background:var(--coin);color:#22163f}
 .side button .badge{font-size:12px;padding:3px 6px}
 .pane{padding:clamp(16px,3vw,28px)}
-.pane[hidden]{display:none}
+.pane[hidden]{display:none!important}
 .tools{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
 .inp{min-height:44px;padding:8px 12px;border:3px solid var(--line);background:var(--bg);color:var(--ink);font:16px "Mitr",sans-serif;border-radius:4px}
 .inp.grow{flex:1 1 200px}
@@ -230,6 +230,7 @@ html[data-mode=night] .side{background:#0b0720}
 .slot button.rs{background:var(--panel);color:var(--ink)}
 .slot button:disabled{opacity:.4;cursor:default}
 .mode{padding:10px 12px;border:2px solid var(--line);background:var(--bg);border-radius:3px;font-size:14px;margin:0 0 6px}
+.stf{background:var(--teal);color:#fff;font:700 11px/1 var(--px);padding:3px 5px;border-radius:2px}
 .adm{background:var(--red);color:#fff;font:700 11px/1 var(--px);padding:3px 5px;border-radius:2px}
 .card .fav{position:absolute;right:10px;top:8px;font:700 22px/1 var(--px);color:#fff;text-shadow:2px 2px 0 #22163f}
 footer{background:#22163f;color:#efe9ff;border-top:3px solid var(--line)}
@@ -238,6 +239,24 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;
 footer small{color:#b6a8e6}
 .ground{height:24px;background:repeating-linear-gradient(90deg,var(--grass) 0 16px,color-mix(in srgb,var(--grass) 80%,#000) 16px 32px);border-top:3px solid var(--line)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:14px}
+.gal figure{margin:0;border:3px solid var(--line);background:var(--panel);border-radius:4px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--bg);cursor:zoom-in}
+.gal figcaption{padding:8px 10px;font-size:14px;min-height:20px;word-break:break-word}
+.gal .gt{display:flex;gap:4px;padding:0 8px 8px;flex-wrap:wrap}
+.gal .gt button{flex:1;min-height:34px;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:3px;font:600 14px/1 var(--px);cursor:pointer}
+.gal .gt button.del{background:var(--red);color:#fff}
+.gal .gt button:disabled{opacity:.35;cursor:default}
+.galtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px;border:2px dashed var(--soft);border-radius:4px;margin-top:10px}
+.galtools .inp{flex:1 1 200px}
+.ulist{display:grid;gap:8px}
+.urow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border:2px solid var(--line);border-radius:3px;background:var(--bg)}
+.urow b{flex:1 1 auto;font:600 16px/1.2 var(--px);word-break:break-all}
+.urow button{min-height:36px;padding:0 12px;border:2px solid var(--line);background:var(--coin);color:#22163f;border-radius:3px;font:600 14px/1 var(--px);cursor:pointer}
+.urow button.rm{background:var(--panel);color:var(--ink)}
+.atabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.atabs button{min-height:38px;padding:0 14px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:3px;font:600 15px/1 var(--px);cursor:pointer}
+.atabs button[aria-selected=true]{background:var(--coin);color:#22163f}
 </style>
 </head>
 <body>
@@ -309,6 +328,7 @@ footer small{color:#b6a8e6}
       <aside class="side" aria-label="เมนูห้องควบคุม">
         <div class="who"><img class="px" data-sprite="hero" alt=""><div><b>Dev Player</b><small>Lv.11 · Purple Cloud</small></div></div>
         <button class="on" data-pane="pCredits">เครดิต <span class="badge" id="credN">0</span></button>
+        <button data-pane="pGallery">แกลเลอรี <span class="badge" id="galN">0</span></button>
         <button data-pane="pTimeline">ไทม์ไลน์</button>
         <button data-pane="pSettings">ตั้งค่า</button>
       </aside>
@@ -333,7 +353,13 @@ footer small{color:#b6a8e6}
             <tbody id="tbody"></tbody>
           </table>
           <div class="pager"><span id="pinfo"></span><div id="pbtn"></div></div>
-          <p style="font-size:13px;color:var(--soft);margin:12px 0 0">หน้าที่และความคืบหน้าเป็นข้อมูลตัวอย่าง แก้ได้ในอาร์เรย์ WORKS ในโค้ด</p>
+          
+        </div>
+        <div class="pane" id="pGallery" hidden>
+          <h3 style="font-size:26px">แกลเลอรีเครดิต</h3>
+          <p style="color:var(--soft);margin:4px 0 0">ภาพเบื้องหลังและเครดิตของสตูดิโอ จัดการโดยทีม Staff</p>
+          <div id="galTools"></div>
+          <div class="gal" id="gal"></div>
         </div>
         <div class="pane" id="pTimeline" hidden>
           <h3 style="font-size:26px">ไทม์ไลน์สตูดิโอ</h3>
@@ -403,12 +429,13 @@ footer small{color:#b6a8e6}
         </label>
         <label class="chk"><input type="checkbox" id="aRemember" checked> จดจำฉันไว้ในเครื่องนี้</label>
         <button class="btn" id="aSubmit" type="submit">▶ เข้าสู่ระบบ</button>
-        <p class="note">บัญชีถูกเก็บไว้ในเบราว์เซอร์ของเครื่องนี้ และรหัสผ่านถูกเข้ารหัสก่อนบันทึก</p>
+        <p class="note">บัญชีเก็บอย่างปลอดภัยบนเซิร์ฟเวอร์ ใช้ชื่อผู้ใช้เดียวกันล็อกอินได้ทุกเครื่อง</p>
       </form>
     </div>
   </div>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script type="application/json" id="pc-baked">{}</script>
@@ -484,12 +511,18 @@ $('#stats').innerHTML=[[WORKS.length,'ผลงานทั้งหมด'],[cn
 
 /* ---------- IMAGES (ADMIN แก้ได้) ---------- */
 const SLOTS=[['logo','โลโก้สตูดิโอ','cloud'],['avatar','ตัวละคร / รูปโปรไฟล์','hero'],['scene','ฉากหน้าแรก',null]].concat(WORKS.map(w=>['w:'+w.id,w.name,w.sp]));
-let cloudSlots={},localSlots={},DB=null,AS=null,canCloud=false,imgRef=null,wq=Promise.resolve(),pendingSlot=null;
-try{localSlots=JSON.parse(localStorage.getItem('pc-img')||'{}')||{}}catch(e){}
-let baked={};try{baked=JSON.parse(document.getElementById('pc-baked').textContent||'{}')||{}}catch(e){}
-const okId=v=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,200}$/.test(v);
-const localOk=c=>c&&typeof c.src==='string'&&/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(c.src);
-function slotData(k){if(DB){const c=cloudSlots[k];if(c&&okId(c.id))return{src:'/_blob/'+c.id,px:!!c.px}}const c=!DB&&k in localSlots?localSlots[k]:baked[k];if(!c||typeof c!=='object')return null;return typeof c.src==='string'&&/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(c.src)?{src:c.src,px:!!c.px}:null}
+let cloudSlots={},pendingSlot=null;
+const SB_URL="https://hspnikyapxhztokfjgjb.supabase.co",SB_KEY="sb_publishable_yYjwGLmvcVPCztdweb7_ng_pSaoxUr2";
+const sb=(()=>{try{if(!window.supabase||/_HERE$/.test(SB_URL))return null;
+ const LSs=(()=>{try{return localStorage}catch(e){return null}})(),SSs=(()=>{try{return sessionStorage}catch(e){return null}})();
+ const rem=()=>{try{return LSs.getItem('pc-remember')!=='0'}catch(e){return true}};
+ const storage={getItem:k=>{try{return (SSs&&SSs.getItem(k))??(LSs&&LSs.getItem(k))}catch(e){return null}},
+  setItem:(k,v)=>{try{(rem()?LSs:SSs).setItem(k,v);(rem()?SSs:LSs).removeItem(k)}catch(e){}},
+  removeItem:k=>{try{LSs.removeItem(k);SSs.removeItem(k)}catch(e){}}};
+ return window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage,persistSession:true,autoRefreshToken:true}})}catch(e){return null}})();
+const pubUrl=p=>SB_URL+'/storage/v1/object/public/pc/'+p.split('/').map(encodeURIComponent).join('/');
+const okPath=v=>typeof v==='string'&&/^(slots|credits)\/[A-Za-z0-9_.-]{1,120}$/.test(v);
+function slotData(k){const c=cloudSlots[k];return c&&okPath(c.path)?{src:pubUrl(c.path),px:!!c.px}:null}
 const imgOf=(k,sp)=>{const d=slotData(k);return d?d.src:(sp?sprite(sp):'')};
 const pxOf=k=>{const d=slotData(k);return d?d.px:true};
 const wImg=w=>`<img class="${pxOf('w:'+w.id)?'px':''}" src="${esc(imgOf('w:'+w.id,w.sp))}" alt="">`;
@@ -511,63 +544,72 @@ track.onkeydown=e=>{if(e.key==='ArrowRight'){e.preventDefault();go(cur+1)}if(e.k
 let hold=false;['mouseenter','focusin','touchstart'].forEach(ev=>track.parentNode.addEventListener(ev,()=>hold=true,{passive:true}));['mouseleave','focusout'].forEach(ev=>track.parentNode.addEventListener(ev,()=>hold=false));
 const auto=setInterval(()=>{if(!hold&&!document.hidden&&$('#anim').checked)go(cur+1)},5000);
 
-/* ---------- AUTH: LOGIN / REGISTER ---------- */
-// เก็บบัญชีใน localStorage ของเบราว์เซอร์ รหัสผ่านถูกแฮชด้วย PBKDF2-SHA256 + salt ไม่เก็บรหัสจริง
-const mem={};
-const sget=(st,k)=>{try{return st.getItem(k)}catch(e){return mem[k]??null}};
-const sset=(st,k,v)=>{try{st.setItem(k,v)}catch(e){mem[k]=v}};
-const sdel=(st,k)=>{try{st.removeItem(k)}catch(e){delete mem[k]}};
-const LS=(()=>{try{return localStorage}catch(e){return null}})(),SS=(()=>{try{return sessionStorage}catch(e){return null}})();
-const users=()=>{try{return JSON.parse(sget(LS,'pc-users')||'{}')}catch(e){return {}}};
-const saveUsers=u=>sset(LS,'pc-users',JSON.stringify(u));
+/* ---------- AUTH: LOGIN / REGISTER (Supabase) ---------- */
+// บัญชีเก็บบน Supabase: รหัสผ่านถูกแฮชฝั่งเซิร์ฟเวอร์ ยศ (admin / staff / member) ตรวจสอบโดยฐานข้อมูล
+let ME=null;
+const me=()=>ME;
+const ROLE_TXT={admin:'ADMIN',staff:'STAFF',member:'สมาชิก'};
 const keyOf=n=>n.trim().toLowerCase();
-const b64=buf=>btoa(String.fromCharCode(...new Uint8Array(buf)));
-const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function hashPw(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);return b64(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},k,256))}
-function same(a,b){if(a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0}
-function me(){const k=sget(SS,'pc-session')||sget(LS,'pc-session');if(!k)return null;const u=users()[k];return u?Object.assign({key:k},u):null}
-function setSession(k,remember){sdel(SS,'pc-session');sdel(LS,'pc-session');sset(remember?LS:SS,'pc-session',k)}
-function logout(){const u=me();sdel(SS,'pc-session');sdel(LS,'pc-session');refreshUser();toast('ออกจากระบบแล้ว',u?'แล้วพบกันใหม่ '+u.name:'');blip(330)}
-function toggleFav(id){const u=me();if(!u){openAuth('login','เข้าสู่ระบบก่อนเพื่อกดถูกใจผลงาน');return}const all=users(),rec=all[u.key];const i=rec.favs.indexOf(id);if(i<0)rec.favs.push(id);else rec.favs.splice(i,1);saveUsers(all);renderTabs();renderCards();const w=WORKS.find(x=>x.id===id);toast(i<0?'ถูกใจแล้ว ♥':'เลิกถูกใจแล้ว',w.name);blip(i<0?990:440)}
+async function emailOf(name){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(keyOf(name)));return 'u'+Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32)+'@purplecloud-users.app'}
+async function loadMe(user){if(!user){ME=null;return}
+ const {data,error}=await sb.from('profiles').select('id,username,role,favs').eq('id',user.id).maybeSingle();
+ if(error||!data){ME=null;return}
+ ME={id:data.id,key:keyOf(data.username),name:data.username,role:data.role,favs:Array.isArray(data.favs)?data.favs:[]}}
+const isAdmin=()=>!!ME&&ME.role==='admin';
+const isStaff=()=>!!ME&&(ME.role==='staff'||ME.role==='admin');
+async function logout(){const u=me();try{await sb.auth.signOut()}catch(e){}ME=null;refreshUser();renderGallery();toast('ออกจากระบบแล้ว',u?'แล้วพบกันใหม่ '+u.name:'');blip(330)}
+async function toggleFav(id){const u=me();if(!u){openAuth('login','เข้าสู่ระบบก่อนเพื่อกดถูกใจผลงาน');return}
+ const i=u.favs.indexOf(id),prev=u.favs.slice();if(i<0)u.favs.push(id);else u.favs.splice(i,1);renderTabs();renderCards();refreshUser();
+ const w=WORKS.find(x=>x.id===id);
+ const {error}=await sb.from('profiles').update({favs:u.favs}).eq('id',u.id);
+ if(error){u.favs=prev;renderTabs();renderCards();refreshUser();toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง');return}
+ toast(i<0?'ถูกใจแล้ว ♥':'เลิกถูกใจแล้ว',w.name);blip(i<0?990:440)}
 function refreshUser(){const u=me(),a=$('#acct');
-if(u){a.innerHTML=`<button class="who-btn" id="whoBtn" aria-haspopup="true" aria-expanded="false"><img class="${pxOf('avatar')?'px':''}" src="${esc(imgOf('avatar','hero'))}" alt=""><span></span>${u.key==='admin'?'<b class="adm">ADMIN</b>':''}</button><div class="menu box" role="menu" id="whoMenu"><div class="hd">ล็อกอินเป็น <b></b></div><button role="menuitem" id="goFav">♥ ผลงานที่ชอบ (${u.favs.length})</button>${u.key==='admin'?'<button role="menuitem" id="goAdmin">✎ จัดการภาพทั้งหมด</button>':''}<button role="menuitem" class="del" id="doOut">⏻ ออกจากระบบ</button></div>`;
+if(u){const badge=u.role==='admin'?'<b class="adm">ADMIN</b>':u.role==='staff'?'<b class="stf">STAFF</b>':'';
+a.innerHTML=`<button class="who-btn" id="whoBtn" aria-haspopup="true" aria-expanded="false"><img class="${pxOf('avatar')?'px':''}" src="${esc(imgOf('avatar','hero'))}" alt=""><span></span>${badge}</button><div class="menu box" role="menu" id="whoMenu"><div class="hd">ล็อกอินเป็น <b></b> · ${ROLE_TXT[u.role]||''}</div><button role="menuitem" id="goFav">♥ ผลงานที่ชอบ (${u.favs.length})</button>${isAdmin()?'<button role="menuitem" id="goAdmin">✎ จัดการภาพทั้งหมด</button><button role="menuitem" id="goUsers">👥 จัดการผู้ใช้ / ยศ</button>':''}${isStaff()?'<button role="menuitem" id="goGal">🖼 จัดการแกลเลอรีเครดิต</button>':''}<button role="menuitem" class="del" id="doOut">⏻ ออกจากระบบ</button></div>`;
 a.querySelector('.who-btn span').textContent=u.name;a.querySelector('.hd b').textContent=u.name;
 $('#whoBtn').onclick=e=>{e.stopPropagation();const m=$('#whoMenu'),o=!m.classList.contains('open');closeMenus();m.classList.toggle('open',o);$('#whoBtn').setAttribute('aria-expanded',o);blip()};
 $('#goFav').onclick=()=>{closeMenus();tab='fav';renderTabs();renderCards();location.hash='works'};
-$('#doOut').onclick=()=>{closeMenus();logout()};if($('#goAdmin'))$('#goAdmin').onclick=()=>{closeMenus();openAdmin()};
-$('.side .who b').textContent=u.name;$('.side .who small').textContent='ถูกใจ '+u.favs.length+' ผลงาน';}
+$('#doOut').onclick=()=>{closeMenus();logout()};
+if($('#goAdmin'))$('#goAdmin').onclick=()=>{closeMenus();openAdmin('img')};
+if($('#goUsers'))$('#goUsers').onclick=()=>{closeMenus();openAdmin('users')};
+if($('#goGal'))$('#goGal').onclick=()=>{closeMenus();openGalleryPane()};
+$('.side .who b').textContent=u.name;$('.side .who small').textContent=(ROLE_TXT[u.role]||'')+' · ถูกใจ '+u.favs.length+' ผลงาน';}
 else{a.innerHTML='<button class="btn login-btn" id="loginBtn">เข้าสู่ระบบ</button>';$('#loginBtn').onclick=()=>openAuth('login');$('.side .who b').textContent='Guest';$('.side .who small').textContent='ยังไม่ได้เข้าสู่ระบบ'}
 if($('#tabs').children.length){renderTabs();renderCards()}}
-let aMode='login',fails=0,lockUntil=0,authFrom=null;
-function setAuthMode(m){aMode=m;const reg=m==='reg';$('#tLogin').setAttribute('aria-selected',!reg);$('#tReg').setAttribute('aria-selected',reg);$('#aTitle').textContent=reg?'สมัครสมาชิก':'เข้าสู่ระบบ';$('#aSubmit').textContent=reg?'▶ สร้างบัญชี':'▶ เข้าสู่ระบบ';$('#confBox').hidden=$('#meterBox').hidden=$('#nameHint').hidden=!reg;$('#aPass').autocomplete=reg?'new-password':'current-password';showErr('');document.querySelectorAll('#authForm .inp').forEach(i=>i.classList.remove('bad'))}
+let aMode='login',authFrom=null;
+function setAuthMode(m){aMode=m;const reg=m==='reg';$('#tLogin').setAttribute('aria-selected',!reg);$('#tReg').setAttribute('aria-selected',reg);$('#aTitle').textContent=reg?'สมัครสมาชิก':'เข้าสู่ระบบ';$('#aSubmit').textContent=reg?'▶ สร้างบัญชี':'▶ เข้าสู่ระบบ';$('#confBox').hidden=$('#meterBox').hidden=$('#nameHint').hidden=!reg;$('#aConf').value='';$('#aPass').autocomplete=reg?'new-password':'current-password';showErr('');document.querySelectorAll('#authForm .inp').forEach(i=>i.classList.remove('bad'))}
 function showErr(t,field){$('#aErr').textContent=t;$('#aErr').classList.toggle('show',!!t);if(field){field.classList.add('bad');field.focus()}}
-function openAuth(m,msg){authFrom=document.activeElement;closeModal();setAuthMode(m||'login');$('#authForm').reset();$('#aRemember').checked=true;$('#meter').style.width='0';if(msg)showErr(msg);$('#authOv').classList.add('open');setTimeout(()=>$('#aName').focus(),50);blip(520)}
+function openAuth(m,msg){authFrom=document.activeElement;closeModal();$('#authForm').reset();setAuthMode(m||'login');$('#aRemember').checked=true;$('#meter').style.width='0';if(msg)showErr(msg);$('#authOv').classList.add('open');setTimeout(()=>$('#aName').focus(),50);blip(520)}
 function closeAuth(){if(!$('#authOv').classList.contains('open'))return;$('#authOv').classList.remove('open');authFrom&&authFrom.focus&&authFrom.focus()}
 $('#ax').onclick=closeAuth;$('#authOv').onclick=e=>{if(e.target.id==='authOv')closeAuth()};
 $('#tLogin').onclick=()=>{setAuthMode('login');blip()};$('#tReg').onclick=()=>{setAuthMode('reg');blip()};
 document.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{const i=document.getElementById(b.dataset.eye),s=i.type==='password';i.type=s?'text':'password';b.textContent=s?'ซ่อน':'ดู';b.setAttribute('aria-label',s?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน')});
 $('#aPass').oninput=()=>{if(aMode!=='reg')return;const p=$('#aPass').value;let s=0;if(p.length>=6)s++;if(p.length>=10)s++;if(/[A-Z]/.test(p)&&/[a-z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;const L=[['สั้นเกินไป','#ef476f'],['อ่อน','#ef476f'],['พอใช้','#ffcc2e'],['ดี','#ffcc2e'],['แข็งแรง','#4fb946'],['แข็งแรงมาก','#4fb946']][s];$('#meter').style.width=(p?Math.max(10,s*20):0)+'%';$('#meter').style.background=L[1];$('#meterTxt').textContent=p?'ความแข็งแรง: '+L[0]:'อย่างน้อย 6 ตัวอักษร'};
-document.querySelectorAll('#authForm .inp').forEach(i=>i.addEventListener('input',()=>{i.classList.remove('bad');if(Date.now()>lockUntil)showErr('')}));
+document.querySelectorAll('#authForm .inp').forEach(i=>i.addEventListener('input',()=>{i.classList.remove('bad');showErr('')}));
 $('#authForm').onsubmit=async e=>{e.preventDefault();showErr('');
-const nameEl=$('#aName'),passEl=$('#aPass'),name=nameEl.value.trim(),pw=passEl.value,k=keyOf(name);
-if(!crypto.subtle){showErr('เบราว์เซอร์นี้ไม่รองรับการเข้ารหัส ลองเปิดผ่าน https');return}
+const nameEl=$('#aName'),passEl=$('#aPass'),name=nameEl.value.trim(),pw=passEl.value;
+if(!sb)return showErr('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองรีเฟรชหน้าเว็บ');
+if(!crypto.subtle)return showErr('เบราว์เซอร์นี้ไม่รองรับ ลองเปิดผ่าน https');
 if(!name)return showErr('กรุณากรอกชื่อผู้ใช้',nameEl);
 if(!pw)return showErr('กรุณากรอกรหัสผ่าน',passEl);
 const btn=$('#aSubmit');btn.disabled=true;const label=btn.textContent;btn.textContent='กำลังโหลด…';
-try{const all=users();
+try{try{localStorage.setItem('pc-remember',$('#aRemember').checked?'1':'0')}catch(x){}
+const email=await emailOf(name);
 if(aMode==='reg'){
- if(!/^[A-Za-z0-9_฀-๿]{3,20}$/.test(name))return showErr('ชื่อผู้ใช้ต้องยาว 3–20 ตัวอักษร ใช้ไทย อังกฤษ ตัวเลข หรือ _ เท่านั้น',nameEl);
- if(all[k])return showErr('ชื่อนี้มีคนใช้แล้ว ลองชื่ออื่น',nameEl);
+ if(!/^[A-Za-z0-9_ก-๙]{3,20}$/.test(name))return showErr('ชื่อผู้ใช้ต้องยาว 3–20 ตัวอักษร ใช้ไทย อังกฤษ ตัวเลข หรือ _ เท่านั้น',nameEl);
  if(pw.length<6)return showErr('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',passEl);
  if(pw!==$('#aConf').value)return showErr('รหัสผ่านทั้งสองช่องไม่ตรงกัน',$('#aConf'));
- const salt=crypto.getRandomValues(new Uint8Array(16));
- all[k]={name,salt:b64(salt),hash:await hashPw(pw,salt),created:Date.now(),favs:[]};saveUsers(all);
- setSession(k,$('#aRemember').checked);closeAuth();refreshUser();toast('สมัครสมาชิกสำเร็จ!','ยินดีต้อนรับ '+name+' สู่ Purple Cloud');blip(990);
+ const {count}=await sb.from('profiles').select('id',{count:'exact',head:true}).ilike('username',name.replace(/_/g,'\\_'));
+ if(count)return showErr('ชื่อนี้มีคนใช้แล้ว ลองชื่ออื่น',nameEl);
+ const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{username:name}}});
+ if(error){const m=error.message||'';return showErr(/registered|exists/i.test(m)?'ชื่อนี้มีคนใช้แล้ว ลองชื่ออื่น':/rate|seconds/i.test(m)?'สมัครถี่เกินไป รอสักครู่แล้วลองใหม่':/password/i.test(m)?'รหัสผ่านไม่ผ่านเงื่อนไข ลองรหัสที่ยาวขึ้น':'สมัครไม่สำเร็จ ลองใหม่อีกครั้ง',nameEl)}
+ if(!data.session)return showErr('สมัครแล้ว แต่ระบบยังต้องยืนยันอีเมล แจ้ง ADMIN ให้ปิดการยืนยันอีเมลใน Supabase');
+ await loadMe(data.user);closeAuth();refreshUser();renderGallery();toast('สมัครสมาชิกสำเร็จ!','ยินดีต้อนรับ '+name+(isAdmin()?' (ADMIN)':'')+' สู่ Purple Cloud');blip(990);
 }else{
- const wait=Math.ceil((lockUntil-Date.now())/1000);if(wait>0)return showErr(`ใส่รหัสผิดหลายครั้ง รออีก ${wait} วินาทีแล้วลองใหม่`);
- const u=all[k];const h=u?await hashPw(pw,unb64(u.salt)):await hashPw(pw,new Uint8Array(16));
- if(!u||!same(h,u.hash)){fails++;if(fails>=5){lockUntil=Date.now()+30000;fails=0;return showErr('ใส่ผิด 5 ครั้งแล้ว ระบบล็อกไว้ 30 วินาที')}return showErr('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',passEl)}
- fails=0;setSession(k,$('#aRemember').checked);closeAuth();refreshUser();toast('เข้าสู่ระบบสำเร็จ','สวัสดี '+u.name+'!');blip(990);
+ const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
+ if(error)return showErr(/rate|many/i.test(error.message||'')?'ลองเข้าสู่ระบบถี่เกินไป รอสักครู่แล้วลองใหม่':'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',passEl);
+ await loadMe(data.user);closeAuth();refreshUser();renderGallery();toast('เข้าสู่ระบบสำเร็จ','สวัสดี '+(ME?ME.name:name)+'!');blip(990);
 }}catch(err){showErr('เกิดข้อผิดพลาด ลองใหม่อีกครั้ง')}finally{btn.disabled=false;btn.textContent=label}};
 
 /* ---------- TABS + CARDS ---------- */
@@ -639,56 +681,106 @@ $('#anim').onchange=()=>{startStop();blip()};
 new MutationObserver(()=>{if(!$('#anim').checked||still)draw()}).observe(root,{attributes:true,attributeFilter:['data-mode']});
 heroImg.onload=cloudImg.onload=()=>draw();
 startStop();
-/* ---------- ADMIN: เปลี่ยนภาพ ---------- */
-const isAdmin=()=>{const u=me();return !!u&&u.key==='admin'};
+/* ---------- ADMIN: เปลี่ยนภาพ (เฉพาะ ADMIN) ---------- */
 function applyImages(){
  document.querySelectorAll('img[data-sprite]').forEach(i=>{const n=i.dataset.sprite,k=n==='cloud'?'logo':n==='hero'?'avatar':null;i.src=k?imgOf(k,n):sprite(n);i.classList.toggle('px',k?pxOf(k):true)});
  heroImg.src=imgOf('avatar','hero');
  const sc=slotData('scene'),si=$('#sceneImg');si.hidden=!sc;if(sc){si.src=sc.src;si.classList.toggle('px',sc.px)}else si.removeAttribute('src');
- renderSlides();refreshUser();if($('#ov').classList.contains('open')&&$('#mTitle').textContent==='จัดการภาพ (ADMIN)')renderAdmin();
+ renderSlides();refreshUser();if($('#ov').classList.contains('open')&&$('#mTitle').textContent==='หลังบ้าน (ADMIN)')renderAdmin();
 }
-function pickFile(k){if(!isAdmin())return;pendingSlot=k;const f=$('#fileIn');f.value='';f.click()}
-$('#fileIn').onchange=()=>{const f=$('#fileIn').files[0];if(f&&pendingSlot)setSlot(pendingSlot,f)};
+let adminTab='img';
+function pickFile(k){if(k==='gal'?!isStaff():!isAdmin())return;pendingSlot=k;const f=$('#fileIn');f.value='';f.multiple=k==='gal';f.click()}
+$('#fileIn').onchange=()=>{const fs=[...$('#fileIn').files];if(!fs.length||!pendingSlot)return;if(pendingSlot==='gal')addCredits(fs);else setSlot(pendingSlot,fs[0])};
 const pxPref=()=>{try{return localStorage.getItem('pc-pxopt')!=='0'}catch(e){return true}};
-function processImg(file,k,pixel){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('decode'))};im.onload=()=>{URL.revokeObjectURL(url);const scene=k==='scene',max=pixel?(scene?200:48):(scene?1280:512),sc=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);if(pixel){const d=g.getImageData(0,0,c.width,c.height),a=d.data;for(let i=0;i<a.length;i+=4){a[i]=Math.round(a[i]/36)*36;a[i+1]=Math.round(a[i+1]/36)*36;a[i+2]=Math.round(a[i+2]/36)*36;a[i+3]=a[i+3]<128?0:255}g.putImageData(d,0,0)}res(c)};im.src=url})}
-async function saveCloud(next){wq=wq.catch(()=>{}).then(()=>imgRef.set({slots:next,updated:Date.now()}));await wq;cloudSlots=next}
-function saveLocal(next){if(!LS)throw new Error('nostore');LS.setItem('pc-img',JSON.stringify(next));localSlots=next}
+function processImg(file,k,pixel){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('decode'))};im.onload=()=>{URL.revokeObjectURL(url);const scene=k==='scene'||k==='gal',max=pixel?(scene?200:48):(scene?1280:512),sc=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);if(pixel){const d=g.getImageData(0,0,c.width,c.height),a=d.data;for(let i=0;i<a.length;i+=4){a[i]=Math.round(a[i]/36)*36;a[i+1]=Math.round(a[i+1]/36)*36;a[i+2]=Math.round(a[i+2]/36)*36;a[i+3]=a[i+3]<128?0:255}g.putImageData(d,0,0)}res(c)};im.src=url})}
+const toBlob=(c,type,q)=>new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error('blob')),type,q));
+const rid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+async function loadSlots(){if(!sb)return;const {data,error}=await sb.from('site_images').select('slot,path,px');if(error)return;const m={};(data||[]).forEach(r=>{if(okPath(r.path))m[r.slot]={path:r.path,px:r.px}});cloudSlots=m;applyImages()}
 let busy=false;
-async function setSlot(k,file){if(!isAdmin()||busy)return;
- if(!/^image\//.test(file.type)){toast('ไฟล์นี้ไม่ใช่รูปภาพ','ใช้ PNG, JPG, GIF หรือ WebP');return}
- if(file.size>15e6){toast('ไฟล์ใหญ่เกินไป','ขนาดไม่เกิน 15 MB');return}
- if(DB&&!canCloud){toast('ไม่มีสิทธิ์แก้ไข','ต้องเปิดเว็บด้วยบัญชี Claude ของเจ้าของ');return}
- const pixel=pxPref();busy=true;if(DB)toast('กำลังอัปโหลด…',slotName(k));
- try{const c=await processImg(file,k,pixel);
-  if(DB){const blob=await new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error('blob')),'image/png'));const a=await AS.upload(blob);if(!okId(a.id))throw new Error('id');const old=cloudSlots[k];await saveCloud(Object.assign({},cloudSlots,{[k]:{id:a.id,px:pixel}}));if(old&&okId(old.id))AS.delete(old.id).catch(()=>{})}
-  else{try{saveLocal(Object.assign({},localSlots,{[k]:{src:pixel?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.82),px:pixel}}))}catch(e){toast('พื้นที่เก็บในเครื่องเต็ม','ลองติ๊กแปลงเป็นพิกเซล หรือคืนค่าบางภาพก่อน');return}}
-  applyImages();toast('เปลี่ยนภาพแล้ว',slotName(k));blip(990)}
- catch(e){toast('เปลี่ยนภาพไม่สำเร็จ',e&&e.code==='quota_exceeded'?'พื้นที่เก็บภาพเต็มแล้ว':'ลองใหม่อีกครั้ง หรือใช้ไฟล์อื่น')}
+function checkFile(file){if(!/^image\//.test(file.type)){toast('ไฟล์นี้ไม่ใช่รูปภาพ','ใช้ PNG, JPG, GIF หรือ WebP');return false}if(file.size>15e6){toast('ไฟล์ใหญ่เกินไป','ขนาดไม่เกิน 15 MB');return false}return true}
+async function setSlot(k,file){if(!isAdmin()||busy||!checkFile(file))return;
+ const pixel=pxPref();busy=true;toast('กำลังอัปโหลด…',slotName(k));
+ try{const c=await processImg(file,k,pixel);const blob=pixel?await toBlob(c,'image/png'):await toBlob(c,'image/jpeg',.85);
+  const path='slots/'+k.replace(/[^A-Za-z0-9_-]/g,'_')+'-'+rid()+(pixel?'.png':'.jpg');
+  const up=await sb.storage.from('pc').upload(path,blob,{contentType:blob.type,cacheControl:'31536000'});if(up.error)throw up.error;
+  const old=cloudSlots[k];
+  const {error}=await sb.from('site_images').upsert({slot:k,path,px:pixel,updated_at:new Date().toISOString()});if(error){sb.storage.from('pc').remove([path]);throw error}
+  if(old&&okPath(old.path))sb.storage.from('pc').remove([old.path]);
+  cloudSlots[k]={path,px:pixel};applyImages();toast('เปลี่ยนภาพแล้ว','ทุกคนที่เปิดเว็บจะเห็นภาพใหม่');blip(990)}
+ catch(e){toast('เปลี่ยนภาพไม่สำเร็จ',/row-level|permission|403|Unauthorized/i.test(e&&e.message||'')?'บัญชีนี้ไม่มีสิทธิ์ ADMIN':'ลองใหม่อีกครั้ง หรือใช้ไฟล์อื่น')}
  finally{busy=false}}
 async function resetSlot(k){if(!isAdmin()||busy)return;busy=true;
- try{if(DB){if(!canCloud)return;const old=cloudSlots[k],next=Object.assign({},cloudSlots);delete next[k];await saveCloud(next);if(old&&okId(old.id))AS.delete(old.id).catch(()=>{})}
-  else{const next=Object.assign({},localSlots);if(baked[k])next[k]=null;else delete next[k];saveLocal(next)}
-  applyImages();toast('คืนค่าภาพเดิมแล้ว',slotName(k))}
+ try{const old=cloudSlots[k];const {error}=await sb.from('site_images').delete().eq('slot',k);if(error)throw error;if(old&&okPath(old.path))sb.storage.from('pc').remove([old.path]);delete cloudSlots[k];applyImages();toast('คืนค่าภาพเดิมแล้ว',slotName(k))}
  catch(e){toast('คืนค่าไม่สำเร็จ','ลองใหม่อีกครั้ง')}finally{busy=false}}
-function renderAdmin(){const mode=DB?(canCloud?'บันทึกขึ้นคลาวด์: ทุกคนที่เปิดเว็บนี้จะเห็นภาพใหม่':'บัญชี Claude ที่เปิดอยู่ไม่มีสิทธิ์แก้ไขเว็บนี้ จึงเปลี่ยนภาพไม่ได้'):'บันทึกในเบราว์เซอร์นี้เท่านั้น: คนอื่นยังเห็นภาพเดิม';
- $('#mBody').innerHTML=`<p class="mode">${mode}</p><label class="chk"><input type="checkbox" id="pxOpt" ${pxPref()?'checked':''}> แปลงรูปที่อัปโหลดเป็นพิกเซลอาร์ตอัตโนมัติ</label>${DB?'':`<div class="mode"><b>ใช้บน Google Sites?</b> เปลี่ยนภาพเสร็จแล้วกดปุ่มนี้ แล้วนำโค้ดไปวางทับโค้ดเดิมใน Google Sites ทุกคนจะเห็นภาพใหม่<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="expBtn" type="button">⧉ คัดลอกโค้ดเว็บทั้งหมด</button></div><textarea id="expTxt" class="inp" readonly hidden style="width:100%;height:120px;margin-top:8px;font:12px monospace"></textarea></div>`}<div class="slots">${SLOTS.map(([k,n,sp])=>{const has=!!slotData(k);return `<div class="slot"><img class="${pxOf(k)?'px':''}" src="${esc(imgOf(k,sp)||'data:image/gif;base64,R0lGODlhAQABAAAAACw=')}" alt=""><div><b>${esc(n)}</b><small>${has?'ภาพที่อัปโหลด':(k==='scene'?'ฉากพิกเซลที่ขยับได้ (ค่าเริ่มต้น)':'ภาพพิกเซลเริ่มต้น')}</small></div><span class="bt"><button data-up="${esc(k)}">เปลี่ยน</button><button class="rs" data-rs="${esc(k)}" ${has?'':'disabled'}>คืนค่า</button></span></div>`}).join('')}</div>`;
+let userList=[];
+async function loadUsers(){const {data,error}=await sb.from('profiles').select('id,username,role,created_at').order('created_at');userList=error?[]:data||[]}
+async function setRole(id,role){if(!isAdmin())return;const u=userList.find(x=>x.id===id);
+ const {error}=await sb.from('profiles').update({role}).eq('id',id);
+ if(error){toast('เปลี่ยนยศไม่สำเร็จ','ลองใหม่อีกครั้ง');return}
+ if(u)u.role=role;renderAdmin();toast(role==='staff'?'แต่งตั้ง STAFF แล้ว':'ปลดจาก STAFF แล้ว',u?u.username:'');blip(role==='staff'?990:440)}
+function renderAdmin(){
+ const tabs=`<div class="atabs" role="tablist"><button role="tab" aria-selected="${adminTab==='img'}" data-at="img">🖼 ภาพทั้งเว็บ</button><button role="tab" aria-selected="${adminTab==='users'}" data-at="users">👥 ผู้ใช้ / ยศ</button></div>`;
+ if(adminTab==='users'){
+  const q=($('#uq')&&$('#uq').value)||'';
+  const rows=userList.filter(u=>!q||u.username.toLowerCase().includes(q.toLowerCase())).map(u=>`<div class="urow"><b></b>${u.role==='admin'?'<span class="adm">ADMIN</span>':u.role==='staff'?'<span class="stf">STAFF</span>':'<small>สมาชิก</small>'}${u.role==='admin'?'':u.role==='staff'?`<button class="rm" data-role="member" data-uid="${esc(u.id)}">ปลด Staff</button>`:`<button data-role="staff" data-uid="${esc(u.id)}">ตั้งเป็น Staff</button>`}</div>`);
+  $('#mBody').innerHTML=tabs+`<p class="mode">STAFF จัดการแกลเลอรีในหน้าเครดิตได้ (เพิ่ม ลบ เรียงลำดับ) แต่แก้ภาพอื่นของเว็บไม่ได้ มีผู้ใช้ทั้งหมด ${userList.length} คน</p><input class="inp" id="uq" type="search" placeholder="ค้นหาชื่อผู้ใช้…" style="width:100%;margin-bottom:10px" value="${esc(q)}"><div class="ulist">${rows.join('')||'<p>ไม่พบผู้ใช้</p>'}</div>`;
+  const shown=userList.filter(u=>!q||u.username.toLowerCase().includes(q.toLowerCase()));
+  $('#mBody').querySelectorAll('.urow b').forEach((b,i)=>b.textContent=shown[i].username);
+  $('#uq').oninput=()=>{const p=$('#uq').selectionStart;renderAdmin();const n=$('#uq');n.focus();n.setSelectionRange(p,p)};
+  $('#mBody').querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>setRole(b.dataset.uid,b.dataset.role));
+ }else{
+ $('#mBody').innerHTML=tabs+`<p class="mode">บันทึกขึ้นเซิร์ฟเวอร์: ทุกคนที่เปิดเว็บจะเห็นภาพใหม่ทันที</p><label class="chk"><input type="checkbox" id="pxOpt" ${pxPref()?'checked':''}> แปลงรูปที่อัปโหลดเป็นพิกเซลอาร์ตอัตโนมัติ</label><div class="slots">${SLOTS.map(([k,n,sp])=>{const has=!!slotData(k);return `<div class="slot"><img class="${pxOf(k)?'px':''}" src="${esc(imgOf(k,sp)||'data:image/gif;base64,R0lGODlhAQABAAAAACw=')}" alt=""><div><b>${esc(n)}</b><small>${has?'ภาพที่อัปโหลด':(k==='scene'?'ฉากพิกเซลที่ขยับได้ (ค่าเริ่มต้น)':'ภาพพิกเซลเริ่มต้น')}</small></div><span class="bt"><button data-up="${esc(k)}">เปลี่ยน</button><button class="rs" data-rs="${esc(k)}" ${has?'':'disabled'}>คืนค่า</button></span></div>`}).join('')}</div>`;
  $('#pxOpt').onchange=e=>{try{localStorage.setItem('pc-pxopt',e.target.checked?'1':'0')}catch(err){}};
- if($('#expBtn'))$('#expBtn').onclick=exportCode;
  $('#mBody').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>pickFile(b.dataset.up));
  $('#mBody').querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>resetSlot(b.dataset.rs))}
-function exportCode(){const eff={};SLOTS.forEach(([k])=>{const c=k in localSlots?localSlots[k]:baked[k];if(localOk(c))eff[k]={src:c.src,px:!!c.px}});
- const json=JSON.stringify(eff).replace(/</g,'\\u003c');
- const body=BODY0.replace(/(<script type="application\/json" id="pc-baked">)[\s\S]*?(<\/script>)/,(m,a,b)=>a+json+b);
- const font=document.querySelector('link[href*="Pixelify"]'),st=document.getElementById('pc-style');
- const code='<!DOCTYPE html>\n<html lang="th">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>Purple Cloud Studio</title>\n'+(font?font.outerHTML:'')+'\n'+st.outerHTML+'\n</head>\n<body>'+body+'</body>\n</html>\n';
- const ta=$('#expTxt');ta.value=code;ta.hidden=false;ta.focus();ta.select();
- const kb=Math.round(code.length/1024);
- try{navigator.clipboard.writeText(code).then(()=>toast('คัดลอกโค้ดแล้ว',kb+' KB · ไปวางทับใน Google Sites'),()=>toast('กดค้างในกล่องแล้วเลือกคัดลอก',kb+' KB'))}catch(e){toast('กดค้างในกล่องแล้วเลือกคัดลอก',kb+' KB')}}
-function openAdmin(){if(!isAdmin())return;openModal('จัดการภาพ (ADMIN)','',[['ปิด','alt']]);renderAdmin()}
-applyImages();
-(async()=>{try{const C=window.claude;if(!C||!C.use)return;const db=await C.use('db');if(!db)return;const [as,us]=await Promise.all([C.use('assets'),C.use('user')]);DB=db;AS=as;
- try{canCloud=!!as&&(us&&us.canEdit?!!(await us.canEdit()):true)}catch(e){canCloud=!!as}
- imgRef=db.doc('site/images');imgRef.onSnapshot(s=>{const d=s.exists?s.data():null;cloudSlots=d&&d.slots&&typeof d.slots==='object'?d.slots:{};applyImages()},()=>{});applyImages()}catch(e){}})();
+ $('#mBody').querySelectorAll('[data-at]').forEach(b=>b.onclick=async()=>{adminTab=b.dataset.at;if(adminTab==='users')await loadUsers();renderAdmin();blip()})}
+async function openAdmin(t){if(!isAdmin())return;adminTab=t||'img';if(adminTab==='users')await loadUsers();openModal('หลังบ้าน (ADMIN)','',[['ปิด','alt']]);renderAdmin()}
+
+/* ---------- แกลเลอรีเครดิต (STAFF + ADMIN จัดการ) ---------- */
+let credits=[];
+async function loadCredits(){if(!sb)return;const {data,error}=await sb.from('credit_images').select('id,path,caption,sort').order('sort',{ascending:true}).order('id');if(error)return;credits=(data||[]).filter(r=>okPath(r.path));renderGallery()}
+function openGalleryPane(){const b=document.querySelector('.side [data-pane="pGallery"]');if(b)b.click();location.hash='savefile'}
+function renderGallery(){
+ $('#galN').textContent=credits.length;
+ const st=isStaff();
+ $('#galTools').innerHTML=st?`<div class="galtools"><input class="inp" id="galCap" maxlength="120" placeholder="คำบรรยายภาพ (ไม่บังคับ)"><button class="btn" id="galAdd" type="button">＋ เพิ่มรูปเข้าคิว</button><small style="flex-basis:100%;color:var(--soft)">คุณเป็น ${isAdmin()?'ADMIN':'STAFF'}: เพิ่มได้หลายรูปพร้อมกัน ลบ และเลื่อนลำดับด้วยปุ่ม ◀ ▶</small></div>`:'';
+ if(st)$('#galAdd').onclick=()=>pickFile('gal');
+ $('#gal').innerHTML=credits.length?credits.map((c,i)=>`<figure><img src="${esc(pubUrl(c.path))}" alt="" loading="lazy" data-zoom="${c.id}"><figcaption></figcaption>${st?`<div class="gt"><button data-mv="-1" data-id="${c.id}" ${i===0?'disabled':''} aria-label="เลื่อนขึ้นก่อน">◀</button><button data-mv="1" data-id="${c.id}" ${i===credits.length-1?'disabled':''} aria-label="เลื่อนไปทีหลัง">▶</button><button data-ed="${c.id}" aria-label="แก้คำบรรยาย">✎</button><button class="del" data-del="${c.id}" aria-label="ลบ">✕</button></div>`:''}</figure>`).join(''):`<div class="empty box" style="grid-column:1/-1">ยังไม่มีภาพในแกลเลอรี${st?' กด ＋ เพิ่มรูปเข้าคิว เพื่อเริ่ม':''}</div>`;
+ $('#gal').querySelectorAll('figcaption').forEach((f,i)=>f.textContent=credits[i].caption||'')}
+async function addCredits(files){if(!isStaff()||busy)return;files=files.filter(checkFile).slice(0,10);if(!files.length)return;busy=true;
+ const cap=(($('#galCap')&&$('#galCap').value)||'').trim().slice(0,120);let ok=0;toast('กำลังอัปโหลด…',files.length+' รูป');
+ try{for(const f of files){try{const c=await processImg(f,'gal',false);const blob=await toBlob(c,'image/jpeg',.85);const path='credits/'+rid()+'.jpg';
+  const up=await sb.storage.from('pc').upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000'});if(up.error)throw up.error;
+  const last=credits.length?credits[credits.length-1].sort:0;
+  const {data,error}=await sb.from('credit_images').insert({path,caption:cap,sort:Math.max(last+1,Date.now()/1000)}).select('id,path,caption,sort').single();
+  if(error){sb.storage.from('pc').remove([path]);throw error}credits.push(data);ok++;renderGallery()}catch(e){}}
+  if($('#galCap'))$('#galCap').value='';
+  toast(ok?'เพิ่มเข้าแกลเลอรีแล้ว':'เพิ่มรูปไม่สำเร็จ',ok?ok+' รูป':'บัญชีนี้อาจไม่มีสิทธิ์ STAFF');if(ok)blip(990)}
+ finally{busy=false}}
+async function moveCredit(id,dir){const i=credits.findIndex(c=>c.id===id),j=i+dir;if(i<0||j<0||j>=credits.length||busy)return;busy=true;
+ const a=credits[i],b=credits[j];let sa=a.sort,sb2=b.sort;if(sa===sb2){sa=i;sb2=j}
+ try{const r1=await sb.from('credit_images').update({sort:sb2}).eq('id',a.id);const r2=await sb.from('credit_images').update({sort:sa}).eq('id',b.id);if(r1.error||r2.error)throw 0;
+  a.sort=sb2;b.sort=sa;credits[i]=b;credits[j]=a;renderGallery();blip()}catch(e){toast('เลื่อนลำดับไม่สำเร็จ','ลองใหม่อีกครั้ง');loadCredits()}finally{busy=false}}
+async function delCredit(id){const c=credits.find(x=>x.id===id);if(!c)return;
+ openModal('ลบภาพนี้ออกจากแกลเลอรี?',`<p>ภาพจะถูกลบออกจากหน้าเครดิตและเซิร์ฟเวอร์ ลบแล้วกู้คืนไม่ได้</p>`,[['ยกเลิก','alt'],['ลบภาพ','danger',async()=>{
+  const {error}=await sb.from('credit_images').delete().eq('id',id);if(error){toast('ลบไม่สำเร็จ','ลองใหม่อีกครั้ง');return}
+  sb.storage.from('pc').remove([c.path]);credits=credits.filter(x=>x.id!==id);renderGallery();toast('ลบภาพแล้ว',c.caption||'')}]])}
+function editCredit(id){const c=credits.find(x=>x.id===id);if(!c)return;
+ openModal('แก้คำบรรยายภาพ','<input class="inp" id="capEd" maxlength="120" style="width:100%">',[['ยกเลิก','alt'],['บันทึก','',async()=>{const v=(window.__capv||'').trim().slice(0,120);
+  const {error}=await sb.from('credit_images').update({caption:v}).eq('id',id);if(error){toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง');return}c.caption=v;renderGallery();toast('บันทึกคำบรรยายแล้ว',v)}]]);
+ const inp=$('#capEd');inp.value=c.caption||'';window.__capv=inp.value;inp.oninput=()=>window.__capv=inp.value;inp.focus()}
+$('#gal').onclick=e=>{const t=e.target.closest('button,[data-zoom]');if(!t)return;
+ if(t.dataset.mv)return moveCredit(+t.dataset.id,+t.dataset.mv);
+ if(t.dataset.del)return delCredit(+t.dataset.del);
+ if(t.dataset.ed)return editCredit(+t.dataset.ed);
+ if(t.dataset.zoom){const c=credits.find(x=>x.id===+t.dataset.zoom);if(c){openModal(c.caption||'แกลเลอรีเครดิต',`<img src="${esc(pubUrl(c.path))}" alt="" style="width:100%;border:3px solid var(--line);border-radius:4px">`,[['ปิด','alt']])}}};
+
+applyImages();renderGallery();
+if(sb){
+ sb.auth.onAuthStateChange((ev,session)=>{if(ev==='SIGNED_OUT'){ME=null;refreshUser();renderGallery()}
+  else if(ev==='INITIAL_SESSION'||ev==='TOKEN_REFRESHED'||ev==='USER_UPDATED'){setTimeout(async()=>{await loadMe(session&&session.user);refreshUser();renderGallery()},0)}});
+ loadSlots();loadCredits();
+}else{toast('ระบบสมาชิกออฟไลน์','เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ดูผลงานได้ตามปกติ')}
 }
 </script>
 </body>
