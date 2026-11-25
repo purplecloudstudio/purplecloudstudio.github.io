@@ -860,7 +860,7 @@ function deleteWork(w){if(!isAdmin())return;const custom=!!CUSTOM[w.id];
  openModal('ลบ "'+w.name+'"?',`<p>${custom?'ผลงานนี้จะถูกลบถาวร พร้อมลิงก์ ไฟล์ดาวน์โหลด และภาพของผลงาน':'ผลงานนี้จะถูกเอาออกจากเว็บ (กู้คืนได้ภายหลังจากเมนู ADMIN แท็บ ผลงาน)'}</p>`,[['ยกเลิก','alt'],['🗑 ลบผลงาน','danger',async()=>{
   try{await removeWork(w);applyMeta();toast('ลบผลงานแล้ว',w.name);blip(440)}catch(e){toast('ลบไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}}]])}
 async function removeWork(w){const L=LINKS[w.id]||{};
- if(CUSTOM[w.id]){const {error}=await sb.from('work_links').delete().eq('work_id',w.id);if(error)throw error;delete LINKS[w.id];delete CUSTOM[w.id];if(okFile(L.file_path))sb.storage.from('games').remove([L.file_path]);const sl=cloudSlots['w:'+w.id];if(sl&&okPath(sl.path)){sb.from('site_images').delete().eq('slot','w:'+w.id);sb.storage.from('pc').remove(withSmall(sl.path));delete cloudSlots['w:'+w.id]}}
+ if(CUSTOM[w.id]){const {error}=await sb.from('work_links').delete().eq('work_id',w.id);if(error)throw error;delete LINKS[w.id];delete CUSTOM[w.id];if(okFile(L.file_path))sb.storage.from('games').remove([L.file_path]);const sl=cloudSlots['w:'+w.id];if(sl&&okPath(sl.path)){await sb.from('site_images').delete().eq('slot','w:'+w.id);sb.storage.from('pc').remove(withSmall(sl.path));delete cloudSlots['w:'+w.id]}}
  else await upsertLink(w,{hidden:true})}
 let workSel=new Set();
 function bulkDelete(){if(!isAdmin())return;const ws=WORKS.filter(w=>workSel.has(w.id));if(!ws.length)return;
