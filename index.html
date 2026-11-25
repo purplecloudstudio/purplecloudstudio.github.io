@@ -292,6 +292,16 @@ footer small{color:#b6a8e6}
 .atabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .atabs button{min-height:38px;padding:0 14px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:3px;font:600 15px/1 var(--px);cursor:pointer}
 .atabs button[aria-selected=true]{background:var(--coin);color:#22163f}
+.fmb{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:8px}
+.fmb .btn{min-height:40px;padding:0 12px;font-size:15px;text-decoration:none;display:inline-flex;align-items:center}
+.fmmain{width:100%;max-height:340px;object-fit:contain;background:#0b0720;border:3px solid var(--line);border-radius:4px;display:block}
+.fmth{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.fmth img{width:64px;height:64px;object-fit:cover;border:3px solid var(--line);cursor:pointer;opacity:.65}
+.fmth img.on{opacity:1;border-color:var(--coin)}
+.fmim{position:relative;display:inline-block}
+.fmim img{width:84px;height:84px;object-fit:cover;border:3px solid var(--line);display:block}
+.fmim button{position:absolute;bottom:2px;min-height:26px;min-width:26px;padding:0;border:2px solid var(--line);background:var(--coin);color:#22163f;border-radius:3px;font:600 13px/1 var(--px);cursor:pointer}
+.fmim .x{right:2px}.fmim .l{left:2px}
 </style>
 </head>
 <body>
@@ -306,6 +316,7 @@ footer small{color:#b6a8e6}
       <a href="#featured" class="on">ไฮไลต์</a>
       <a href="#home">หน้าแรก</a>
       <a href="#works">ผลงาน</a>
+      <a href="#freemodel">Free Model</a>
       <a href="#savefile">เครดิต</a>
       <a href="#faq">FAQ</a>
     </div>
@@ -355,6 +366,17 @@ footer small{color:#b6a8e6}
       <div class="tabs" role="tablist" id="tabs"></div>
     </div>
     <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<section class="band" id="freemodel" style="padding-top:0" hidden>
+  <div class="wrap">
+    <div class="crumb">หน้าแรก › <b>Free Model</b></div>
+    <div class="head">
+      <div><div class="label">◆ FREE ASSETS</div><h2>Free Model แจกฟรี</h2></div>
+      <div id="fmTools"></div>
+    </div>
+    <div class="grid" id="fmGrid"></div>
   </div>
 </section>
 
@@ -570,7 +592,7 @@ const sb=(()=>{try{if(!window.supabase||/_HERE$/.test(SB_URL))return null;
   removeItem:k=>{try{LSs.removeItem(k);SSs.removeItem(k)}catch(e){}}};
  return window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage,persistSession:true,autoRefreshToken:true}})}catch(e){return null}})();
 const pubUrl=p=>SB_URL+'/storage/v1/object/public/pc/'+p.split('/').map(encodeURIComponent).join('/');
-const okPath=v=>typeof v==='string'&&/^(slots|credits|reviews)\/[A-Za-z0-9_.-]{1,120}$/.test(v);
+const okPath=v=>typeof v==='string'&&/^(slots|credits|reviews|models)\/[A-Za-z0-9_.-]{1,120}$/.test(v);
 const SLOW=(()=>{try{const c=navigator.connection;return !!c&&(!!c.saveData||/(^|-)(2g|3g)$/.test(c.effectiveType||'')||(c.downlink>0&&c.downlink<1.5))}catch(e){return false}})()||(screen.width<=700);
 const smallOf=p=>/\.v2\.(webp|jpg|png)$/.test(p)?p.replace(/\.v2\.(\w+)$/,'.v2-s.$1'):null;
 const vUrl=p=>pubUrl(SLOW&&smallOf(p)?smallOf(p):p);
@@ -748,7 +770,7 @@ let adminTab='img';
 function pickFile(k){if(k==='gal'?!isStaff():!isAdmin())return;pendingSlot=k;const f=$('#fileIn');f.value='';f.multiple=k==='gal'||k==='rev';f.click()}
 $('#fileIn').onchange=()=>{const fs=[...$('#fileIn').files];if(!fs.length||!pendingSlot)return;if(pendingSlot==='gal'||pendingSlot==='rev')addCredits(fs,pendingSlot==='rev'?'review':'credit');else setSlot(pendingSlot,fs[0])};
 const pxPref=()=>{try{return localStorage.getItem('pc-pxopt')!=='0'}catch(e){return true}};
-const MAXF={gal:1600,rev:2000,slot:1000},MAXS={gal:640,rev:900,slot:360};
+const MAXF={gal:1600,rev:2000,slot:1000,mdl:1600},MAXS={gal:640,rev:900,slot:360,mdl:640};
 function loadImg(file){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('ไฟล์ภาพเสีย หรือเบราว์เซอร์อ่านไม่ได้'))};im.onload=()=>{URL.revokeObjectURL(url);res(im)};im.src=url})}
 function scaleTo(im,max){const sc=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(im,0,0,c.width,c.height);return c}
 async function encode(c,alpha){let b=await new Promise(r=>c.toBlob(r,'image/webp',.8));if(b&&b.type==='image/webp')return [b,'webp'];
@@ -921,7 +943,7 @@ const KIND={credit:{grid:'#gal',tools:'#galTools',n:'#galN',pick:'gal',can:()=>i
 const listOf=k=>credits.filter(c=>(c.kind||'credit')===k);
 async function loadCredits(){if(!sb)return;const {data,error}=await sb.from('credit_images').select('id,path,caption,sort,kind').order('sort',{ascending:true}).order('id');if(error)return;credits=(data||[]).filter(r=>okPath(r.path));renderGallery()}
 function openGalleryPane(p){const b=document.querySelector(`.side [data-pane="${p||'pGallery'}"]`);if(b)b.click();location.hash='savefile'}
-function renderGallery(){Object.keys(KIND).forEach(renderKind)}
+function renderGallery(){Object.keys(KIND).forEach(renderKind);try{renderModels()}catch(e){}}
 const EDIT={credit:false,review:false};let revAll=false;const REV_N=6;
 function renderKind(k){const K=KIND[k],list=listOf(k),can=K.can(),st=can&&EDIT[k];
  $(K.n).textContent=list.length;
@@ -969,11 +991,73 @@ function editCredit(id){const c=credits.find(x=>x.id===id);if(!c)return;
  if(t.dataset.ed)return editCredit(+t.dataset.ed);
  if(t.dataset.zoom){const c=credits.find(x=>x.id===+t.dataset.zoom);if(c)openModal(c.caption||(c.kind==='review'?'รีวิวจากลูกค้า':'แกลเลอรีเครดิต'),`<img src="${esc(pubUrl(c.path))}" alt="" style="width:100%;border:3px solid var(--line);border-radius:4px">`,[['ปิด','alt']])}});
 
+/* ===== FREE MODEL ===== */
+let FM=[],fmBusy=false;
+const okFmImg=p=>typeof p==='string'&&/^models\/[A-Za-z0-9_.-]{1,120}$/.test(p);
+async function loadModels(){if(!sb)return;const {data,error}=await sb.from('free_models').select('*').order('sort',{ascending:false}).order('id',{ascending:false});if(error)return;FM=(data||[]).map(r=>Object.assign(r,{images:(r.images||[]).filter(okFmImg)}));renderModels()}
+function fmBtns(m){let h='';
+ if(okFile(m.file_path))h+=`<a class="btn" href="${esc(dlUrl(m))}" rel="noopener">⬇ ดาวน์โหลดโมเดล${m.file_size?' ('+fmtSize(m.file_size)+')':''}</a>`;
+ if(okUrl(m.dl_url))h+=`<a class="btn" href="${esc(m.dl_url)}" target="_blank" rel="noopener noreferrer">⬇ ดาวน์โหลด (ลิงก์)</a>`;
+ return h}
+function renderModels(){const g=$('#fmGrid'),t=$('#fmTools');if(!g)return;const adm=isAdmin();
+ t.innerHTML=adm?'<button class="btn" id="fmAdd" type="button">＋ เพิ่ม Free Model</button>':'';
+ $('#freemodel').hidden=!FM.length&&!adm;
+ g.innerHTML=FM.length?FM.map(m=>{const im=m.images[0];return `<article class="card box"><div class="art" style="background:#6b3fd1"><span class="badge">FREE</span>${im?`<img class="cover" src="${esc(vUrl(im))}" alt="" loading="lazy" decoding="async">`:`<img class="px" src="${sprite('star')}" alt="">`}${m.images.length>1?`<span class="badge" style="left:auto;right:10px">🖼 ${m.images.length}</span>`:''}</div><div class="body"><h3>${esc(m.title)}</h3><p>${esc(m.descr||'')}</p><div class="fmb"><button class="btn" data-fmv="${m.id}" type="button">ดูรายละเอียด</button>${fmBtns(m)}${adm?`<button class="btn alt" data-fme="${m.id}" type="button">✎ แก้ไข</button>`:''}</div></div></article>`}).join(''):'<div class="empty box" style="grid-column:1/-1">ยังไม่มี Free Model กด "＋ เพิ่ม Free Model" เพื่อเริ่มเพิ่ม</div>'}
+function showModel(id){const m=FM.find(x=>x.id===id);if(!m)return;window.__fmImgs=m.images;const im=m.images;
+ openModal(m.title,`${im.length?`<img id="fmMain" class="fmmain" src="${esc(pubUrl(im[0]))}" alt="">`:''}${im.length>1?`<div class="fmth">${im.map((p,i)=>`<img data-fmth="${i}" src="${esc(vUrl(p))}" alt="" class="${i?'':'on'}">`).join('')}</div>`:''}<p>${esc(m.descr||'ยังไม่มีคำอธิบาย')}</p><div class="fmb">${fmBtns(m)||'<small>ยังไม่มีไฟล์ให้ดาวน์โหลด</small>'}</div>`,[['ปิด','alt']])}
+$('#mBody').addEventListener('click',e=>{const t=e.target.closest('[data-fmth]');if(!t)return;const p=(window.__fmImgs||[])[+t.dataset.fmth];if(!p||!$('#fmMain'))return;$('#fmMain').src=pubUrl(p);$('#mBody').querySelectorAll('[data-fmth]').forEach(x=>x.classList.toggle('on',x===t))});
+$('#fmGrid').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.fmv)showModel(+b.dataset.fmv);else if(b.dataset.fme)fmEdit(+b.dataset.fme)};
+$('#fmTools').onclick=e=>{if(e.target.closest('#fmAdd'))fmAdd()};
+async function fmPatch(m,patch){const {data,error}=await sb.from('free_models').update(patch).eq('id',m.id).select('*').single();if(error)throw error;Object.assign(m,data,{images:(data.images||[]).filter(okFmImg)});return m}
+async function fmAdd(){if(!isAdmin())return;const {data,error}=await sb.from('free_models').insert({title:'Free Model ใหม่'}).select('*').single();if(error){toast('เพิ่มไม่สำเร็จ',(error.message||'').slice(0,120));return}data.images=[];FM.unshift(data);renderModels();fmEdit(data.id);blip(990)}
+function fmEdit(id){const m=FM.find(x=>x.id===id);if(!m||!isAdmin())return;openModal('แก้ไข Free Model','',[['ปิด','alt']]);renderFmAdmin(m)}
+function renderFmAdmin(m){
+ $('#mBody').innerHTML=`<div class="gl">
+ <div class="sec"><b>📝 ข้อมูล</b>
+  <label><small>ชื่อโมเดล</small><input class="inp" id="fmT" maxlength="80" style="width:100%"></label>
+  <label><small>คำอธิบาย (ไม่บังคับ)</small><textarea class="inp" id="fmD" rows="3" maxlength="1000" style="width:100%"></textarea></label>
+  <label><small>ลิงก์ดาวน์โหลด สำหรับไฟล์ใหญ่ได้ถึง 2 GB เช่น GitHub Releases / Google Drive (ไม่บังคับ)</small><input class="inp" id="fmL" type="url" placeholder="https://..." style="width:100%"></label>
+  <div class="row2" style="margin-top:8px"><button type="button" id="fmSave">บันทึกข้อมูล</button><button class="rm" type="button" id="fmDel" style="margin-left:auto;background:var(--red);color:#fff">🗑 ลบ Free Model นี้</button></div></div>
+ <div class="sec"><b>🖼 รูปแนบ (${m.images.length}/12)</b><small style="display:block;margin:4px 0 8px">รูปแรกเป็นรูปปก ใช้ ◀ เลื่อนไปทางซ้าย ระบบย่อรูปให้อัตโนมัติ</small>
+  <div class="fmth">${m.images.map((p,i)=>`<span class="fmim"><img src="${esc(vUrl(p))}" alt="">${i?`<button class="l" data-fmmv="${i}" type="button" aria-label="เลื่อนซ้าย">◀</button>`:''}<button class="x" data-fmx="${i}" type="button" aria-label="ลบรูป">✕</button></span>`).join('')}</div>
+  <div class="row2"><button type="button" id="fmImg" ${m.images.length>=12?'disabled':''}>＋ เพิ่มรูป</button></div></div>
+ <div class="sec"><b>⬇ ไฟล์โมเดล</b><small style="display:block;margin:4px 0 8px"><span id="fmFn"></span>${m.file_path?' · '+fmtSize(m.file_size):'ยังไม่มีไฟล์'} · อัปได้ทุกชนิดไม่เกิน 50 MB (ใหญ่กว่านี้ใช้ช่องลิงก์ด้านบน)</small>
+  <div class="row2"><button type="button" id="fmUp">${m.file_path?'อัปไฟล์ใหม่แทน':'อัปโหลดไฟล์'}</button><button class="rm" type="button" id="fmRm" ${m.file_path?'':'disabled'}>ลบไฟล์</button></div></div></div>`;
+ $('#fmT').value=m.title||'';$('#fmD').value=m.descr||'';$('#fmL').value=m.dl_url||'';if($('#fmFn'))$('#fmFn').textContent=m.file_name||'';
+ $('#fmSave').onclick=async()=>{let t=$('#fmT').value.trim().slice(0,80),d=$('#fmD').value.trim().slice(0,1000),l=$('#fmL').value.trim();
+  if(!t){toast('ใส่ชื่อโมเดลก่อน');return}
+  if(l&&!/^https?:\/\//i.test(l))l='https://'+l;if(l&&!okUrl(l)){toast('ลิงก์ไม่ถูกต้อง','ต้องขึ้นต้นด้วย https://');return}
+  try{await fmPatch(m,{title:t,descr:d||null,dl_url:l||null});toast('บันทึกแล้ว',t);blip(990)}catch(e){toast('บันทึกไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
+  renderModels();renderFmAdmin(m)};
+ $('#fmDel').onclick=()=>openModal('ลบ Free Model?',`<p>ลบ "${esc(m.title)}" พร้อมรูปและไฟล์ทั้งหมด ย้อนกลับไม่ได้</p>`,[['ยกเลิก','alt'],['ลบเลย','',()=>fmRemove(m)]]);
+ $('#fmImg').onclick=()=>{const f=document.createElement('input');f.type='file';f.accept='image/*';f.multiple=true;f.onchange=()=>fmAddImgs(m,[...f.files]);f.click()};
+ $('#fmUp').onclick=()=>{const f=document.createElement('input');f.type='file';f.onchange=()=>fmUpFile(m,f.files[0]);f.click()};
+ $('#fmRm').onclick=async()=>{if(fmBusy)return;const old=m.file_path;try{await fmPatch(m,{file_path:null,file_name:null,file_size:null});if(okFile(old))sb.storage.from('games').remove([old]);toast('ลบไฟล์แล้ว',m.title);blip(440)}catch(e){toast('ลบไม่สำเร็จ',(e&&e.message||'').slice(0,120))}renderModels();renderFmAdmin(m)};
+ $('#mBody').querySelectorAll('[data-fmx]').forEach(b=>b.onclick=async()=>{if(fmBusy)return;const i=+b.dataset.fmx,p=m.images[i];if(!p)return;try{await fmPatch(m,{images:m.images.filter((_,j)=>j!==i)});sb.storage.from('pc').remove(withSmall(p));blip(440)}catch(e){toast('ลบรูปไม่สำเร็จ',(e&&e.message||'').slice(0,120))}renderModels();renderFmAdmin(m)});
+ $('#mBody').querySelectorAll('[data-fmmv]').forEach(b=>b.onclick=async()=>{if(fmBusy)return;const i=+b.dataset.fmmv;if(i<1)return;const a=m.images.slice();[a[i-1],a[i]]=[a[i],a[i-1]];try{await fmPatch(m,{images:a});blip()}catch(e){toast('เลื่อนไม่สำเร็จ',(e&&e.message||'').slice(0,120))}renderModels();renderFmAdmin(m)})}
+async function fmAddImgs(m,files){if(fmBusy||!isAdmin())return;files=files.filter(checkFile).slice(0,12-m.images.length);if(!files.length)return;fmBusy=true;toast('กำลังอัปโหลดรูป…',files.length+' รูป');const added=[];
+ try{for(const f of files){try{added.push(await upVariants('models/'+rid(),f,'mdl'))}catch(e){console.error('fm img',e)}}
+  if(!added.length){toast('อัปโหลดรูปไม่สำเร็จ','ลองใหม่อีกครั้ง')}
+  else{try{await fmPatch(m,{images:m.images.concat(added)});toast('เพิ่มรูปแล้ว',added.length+' รูป');blip(990)}catch(e){added.forEach(p=>sb.storage.from('pc').remove(withSmall(p)));throw e}}}
+ catch(e){toast('บันทึกไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
+ finally{fmBusy=false;renderModels();if($('#fmT'))renderFmAdmin(m)}}
+async function fmUpFile(m,f){if(!f||fmBusy||!isAdmin())return;
+ if(f.size>52428800){toast('ไฟล์ใหญ่เกิน 50 MB','ไฟล์ใหญ่กว่านี้ให้อัปไว้ GitHub Releases / Google Drive แล้ววางลิงก์ดาวน์โหลดแทน');return}
+ fmBusy=true;toast('กำลังอัปโหลดไฟล์…',f.name);const ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase(),path='files/fm'+rid()+ext,old=m.file_path;
+ try{const up=await sb.storage.from('games').upload(path,f,{contentType:f.type||'application/octet-stream',cacheControl:'3600'});if(up.error)throw up.error;
+  try{await fmPatch(m,{file_path:path,file_name:f.name.slice(0,160),file_size:f.size})}catch(e){sb.storage.from('games').remove([path]);throw e}
+  if(okFile(old))sb.storage.from('games').remove([old]);toast('อัปโหลดไฟล์แล้ว','ทุกคนกดดาวน์โหลดได้ทันที');blip(990)}
+ catch(e){const t=(e&&(e.message||e.error))||'';toast('อัปโหลดไม่สำเร็จ',/size|large|413|exceeded/i.test(t)?'ไฟล์ใหญ่เกินขีดจำกัด (50 MB)':(t||'ลองใหม่อีกครั้ง').slice(0,120));console.error('fm file',e)}
+ finally{fmBusy=false;renderModels();if($('#fmT'))renderFmAdmin(m)}}
+async function fmRemove(m){if(!isAdmin())return;try{const {error}=await sb.from('free_models').delete().eq('id',m.id);if(error)throw error;
+  const pc=m.images.flatMap(withSmall);if(pc.length)sb.storage.from('pc').remove(pc);if(okFile(m.file_path))sb.storage.from('games').remove([m.file_path]);
+  FM=FM.filter(x=>x.id!==m.id);renderModels();toast('ลบแล้ว',m.title);blip(440)}catch(e){toast('ลบไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}}
+
 applyImages();renderGallery();
 if(sb){
  sb.auth.onAuthStateChange((ev,session)=>{if(ev==='SIGNED_OUT'){ME=null;refreshUser();renderGallery()}
   else if(ev==='INITIAL_SESSION'||ev==='TOKEN_REFRESHED'||ev==='USER_UPDATED'){setTimeout(async()=>{await loadMe(session&&session.user);refreshUser();renderGallery()},0)}});
- loadSlots();loadCredits();loadLinks();
+ loadSlots();loadCredits();loadLinks();loadModels();
 }else{toast('ระบบสมาชิกออฟไลน์','เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ดูผลงานได้ตามปกติ')}
 }
 </script>
