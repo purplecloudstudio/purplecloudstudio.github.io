@@ -251,6 +251,8 @@ footer small{color:#b6a8e6}
 .gal .gt button{flex:1;min-height:34px;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:3px;font:600 14px/1 var(--px);cursor:pointer}
 .gal .gt button.del{background:var(--red);color:#fff}
 .gal .gt button:disabled{opacity:.35;cursor:default}
+.gal.rev{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.gal.rev img{aspect-ratio:auto;max-height:460px;object-fit:contain;object-position:top}
 .galtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px;border:2px dashed var(--soft);border-radius:4px;margin-top:10px}
 .galtools .inp{flex:1 1 200px}
 .ulist{display:grid;gap:8px}
@@ -346,6 +348,7 @@ footer small{color:#b6a8e6}
         <div class="who"><img class="px" data-sprite="hero" alt=""><div><b>Dev Player</b><small>Lv.11 · Purple Cloud</small></div></div>
         <button class="on" data-pane="pCredits">เครดิต <span class="badge" id="credN">0</span></button>
         <button data-pane="pGallery">แกลเลอรี <span class="badge" id="galN">0</span></button>
+        <button data-pane="pReviews">รีวิวลูกค้า <span class="badge" id="revN">0</span></button>
         <button data-pane="pTimeline">ไทม์ไลน์</button>
         <button data-pane="pSettings">ตั้งค่า</button>
       </aside>
@@ -377,6 +380,12 @@ footer small{color:#b6a8e6}
           <p style="color:var(--soft);margin:4px 0 0">ภาพเบื้องหลังและเครดิตของสตูดิโอ จัดการโดยทีม Staff</p>
           <div id="galTools"></div>
           <div class="gal" id="gal"></div>
+        </div>
+        <div class="pane" id="pReviews" hidden>
+          <h3 style="font-size:26px">รีวิวจากลูกค้าจริง</h3>
+          <p style="color:var(--soft);margin:4px 0 0">ภาพรีวิวจริงจากลูกค้าบนเพจ Facebook ของ Purple Cloud Studio กดที่ภาพเพื่อดูขนาดเต็ม</p>
+          <div id="revTools"></div>
+          <div class="gal rev" id="rev"></div>
         </div>
         <div class="pane" id="pTimeline" hidden>
           <h3 style="font-size:26px">ไทม์ไลน์สตูดิโอ</h3>
@@ -529,7 +538,9 @@ secs.forEach(s=>spy.observe(s));
 
 /* ---------- STATS ---------- */
 const cnt=c=>WORKS.filter(w=>w.cat===c).length;
-$('#stats').innerHTML=[[WORKS.length,'ผลงานทั้งหมด'],[cnt('html'),'เกม HTML'],[cnt('roblox'),'เกม Roblox'],[WORKS.filter(w=>w.status==='done').length,'เคลียร์แล้ว']].map(([n,t])=>`<div class="stat box"><b>${n}</b><span>${t}</span></div>`).join('');
+function renderStats(){$('#stats').innerHTML=[[WORKS.length,'ผลงานทั้งหมด'],[cnt('html'),'เกม HTML'],[cnt('roblox'),'เกม Roblox'],[WORKS.filter(w=>w.status==='done').length,'เคลียร์แล้ว']].map(([n,t])=>`<div class="stat box"><b>${n}</b><span>${t}</span></div>`).join('')}
+renderStats();
+const WDEF={};WORKS.forEach(w=>WDEF[w.id]={status:w.status,done:w.done,role:w.role,tool:w.tool,desc:w.desc});
 
 /* ---------- IMAGES (ADMIN แก้ได้) ---------- */
 const SLOTS=[['logo','โลโก้สตูดิโอ','cloud'],['avatar','ตัวละคร / รูปโปรไฟล์','hero'],['scene','ฉากหน้าแรก',null]].concat(WORKS.map(w=>['w:'+w.id,w.name,w.sp]));
@@ -543,7 +554,7 @@ const sb=(()=>{try{if(!window.supabase||/_HERE$/.test(SB_URL))return null;
   removeItem:k=>{try{LSs.removeItem(k);SSs.removeItem(k)}catch(e){}}};
  return window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage,persistSession:true,autoRefreshToken:true}})}catch(e){return null}})();
 const pubUrl=p=>SB_URL+'/storage/v1/object/public/pc/'+p.split('/').map(encodeURIComponent).join('/');
-const okPath=v=>typeof v==='string'&&/^(slots|credits)\/[A-Za-z0-9_.-]{1,120}$/.test(v);
+const okPath=v=>typeof v==='string'&&/^(slots|credits|reviews)\/[A-Za-z0-9_.-]{1,120}$/.test(v);
 function slotData(k){const c=cloudSlots[k];return c&&okPath(c.path)?{src:pubUrl(c.path),px:!!c.px}:null}
 const imgOf=(k,sp)=>{const d=slotData(k);return d?d.src:(sp?sprite(sp):'')};
 const pxOf=k=>{const d=slotData(k);return d?d.px:true};
@@ -586,9 +597,9 @@ async function toggleFav(id){const u=me();if(!u){openAuth('login','เข้า�
  const {error}=await sb.from('profiles').update({favs:u.favs}).eq('id',u.id);
  if(error){u.favs=prev;renderTabs();renderCards();refreshUser();toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง');return}
  toast(i<0?'ถูกใจแล้ว ♥':'เลิกถูกใจแล้ว',w.name);blip(i<0?990:440)}
-function refreshUser(){const u=me(),a=$('#acct');
+function refreshUser(){const u=me(),a=$('#acct');if(typeof renderTable==='function'&&$('#tbody'))try{renderTable()}catch(e){}
 if(u){const badge=u.role==='admin'?'<b class="adm">ADMIN</b>':u.role==='staff'?'<b class="stf">STAFF</b>':'';
-a.innerHTML=`<button class="who-btn" id="whoBtn" aria-haspopup="true" aria-expanded="false"><img class="${pxOf('avatar')?'px':''}" src="${esc(imgOf('avatar','hero'))}" alt=""><span></span>${badge}</button><div class="menu box" role="menu" id="whoMenu"><div class="hd">ล็อกอินเป็น <b></b> · ${ROLE_TXT[u.role]||''}</div><button role="menuitem" id="goFav">♥ ผลงานที่ชอบ (${u.favs.length})</button>${isAdmin()?'<button role="menuitem" id="goAdmin">✎ จัดการภาพทั้งหมด</button><button role="menuitem" id="goUsers">👥 จัดการผู้ใช้ / ยศ</button>':''}${isStaff()?'<button role="menuitem" id="goGal">🖼 จัดการแกลเลอรีเครดิต</button>':''}<button role="menuitem" class="del" id="doOut">⏻ ออกจากระบบ</button></div>`;
+a.innerHTML=`<button class="who-btn" id="whoBtn" aria-haspopup="true" aria-expanded="false"><img class="${pxOf('avatar')?'px':''}" src="${esc(imgOf('avatar','hero'))}" alt=""><span></span>${badge}</button><div class="menu box" role="menu" id="whoMenu"><div class="hd">ล็อกอินเป็น <b></b> · ${ROLE_TXT[u.role]||''}</div><button role="menuitem" id="goFav">♥ ผลงานที่ชอบ (${u.favs.length})</button>${isAdmin()?'<button role="menuitem" id="goAdmin">✎ จัดการภาพทั้งหมด</button><button role="menuitem" id="goUsers">👥 จัดการผู้ใช้ / ยศ</button>':''}${isStaff()?'<button role="menuitem" id="goGal">🖼 จัดการแกลเลอรีเครดิต</button>':''}${isAdmin()?'<button role="menuitem" id="goRev">⭐ จัดการรีวิวลูกค้า</button>':''}<button role="menuitem" class="del" id="doOut">⏻ ออกจากระบบ</button></div>`;
 a.querySelector('.who-btn span').textContent=u.name;a.querySelector('.hd b').textContent=u.name;
 $('#whoBtn').onclick=e=>{e.stopPropagation();const m=$('#whoMenu'),o=!m.classList.contains('open');closeMenus();m.classList.toggle('open',o);$('#whoBtn').setAttribute('aria-expanded',o);blip()};
 $('#goFav').onclick=()=>{closeMenus();tab='fav';renderTabs();renderCards();location.hash='works'};
@@ -596,6 +607,7 @@ $('#doOut').onclick=()=>{closeMenus();logout()};
 if($('#goAdmin'))$('#goAdmin').onclick=()=>{closeMenus();openAdmin('img')};
 if($('#goUsers'))$('#goUsers').onclick=()=>{closeMenus();openAdmin('users')};
 if($('#goGal'))$('#goGal').onclick=()=>{closeMenus();openGalleryPane()};
+if($('#goRev'))$('#goRev').onclick=()=>{closeMenus();openGalleryPane('pReviews')};
 $('.side .who b').textContent=u.name;$('.side .who small').textContent=(ROLE_TXT[u.role]||'')+' · ถูกใจ '+u.favs.length+' ผลงาน';}
 else{a.innerHTML='<button class="btn login-btn" id="loginBtn">เข้าสู่ระบบ</button>';$('#loginBtn').onclick=()=>openAuth('login');$('.side .who b').textContent='Guest';$('.side .who small').textContent='ยังไม่ได้เข้าสู่ระบบ'}
 if($('#tabs').children.length){renderTabs();renderCards()}}
@@ -648,7 +660,7 @@ function openModal(title,body,foot){lastFocus=document.activeElement;$('#mTitle'
 function closeModal(){$('#ov').classList.remove('open');lastFocus&&lastFocus.focus&&lastFocus.focus()}
 $('#mx').onclick=closeModal;$('#ov').onclick=e=>{if(e.target.id==='ov')closeModal()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAuth();closeMenus()}});
-function showWork(id){const w=WORKS.find(x=>x.id===id);if(!w)return;openModal(w.name,`<div class="art" style="background:${w.col}">${wImg(w)}</div><span class="badge ${w.cat}">${CAT[w.cat]}</span> <span class="st ${w.status}">${STN[w.status]}</span><p>${esc(w.desc)}</p><dl class="kv"><dt>หน้าที่</dt><dd>${esc(w.role)}</dd><dt>เครื่องมือ</dt><dd>${esc(w.tool)}</dd><dt>ความคืบหน้า</dt><dd>${w.done}%</dd><dt>สร้างโดย</dt><dd>Purple Cloud Studio</dd></dl>`,[['ปิด','alt']].concat(workBtns(w)).concat(isAdmin()?[['เปลี่ยนภาพ','alt',()=>pickFile('w:'+w.id)],['⚙ ลิงก์ / ไฟล์','alt',()=>setTimeout(()=>openWorkAdmin(w.id),0)]]:[]).concat([[me()&&me().favs.includes(w.id)?'♥ เลิกถูกใจ':'♡ ถูกใจ','',()=>toggleFav(w.id)]]))}
+function showWork(id){const w=WORKS.find(x=>x.id===id);if(!w)return;openModal(w.name,`<div class="art" style="background:${w.col}">${wImg(w)}</div><span class="badge ${w.cat}">${CAT[w.cat]}</span> <span class="st ${w.status}">${STN[w.status]}</span><p>${esc(w.desc)}</p><dl class="kv"><dt>หน้าที่</dt><dd>${esc(w.role)}</dd><dt>เครื่องมือ</dt><dd>${esc(w.tool)}</dd><dt>ความคืบหน้า</dt><dd>${w.done}%</dd><dt>สร้างโดย</dt><dd>Purple Cloud Studio</dd></dl>`,[['ปิด','alt']].concat(workBtns(w)).concat(isAdmin()?[['เปลี่ยนภาพ','alt',()=>pickFile('w:'+w.id)],['✎ แก้ไขข้อมูล','alt',()=>setTimeout(()=>openWorkAdmin(w.id),0)]]:[]).concat([[me()&&me().favs.includes(w.id)?'♥ เลิกถูกใจ':'♡ ถูกใจ','',()=>toggleFav(w.id)]]))}
 document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o)showWork(o.dataset.open)});
 function copy(t){try{navigator.clipboard.writeText(t).then(()=>toast('คัดลอกแล้ว',t),()=>toast('คัดลอกไม่ได้','เบราว์เซอร์ไม่อนุญาต'))}catch(e){toast('คัดลอกไม่ได้','เบราว์เซอร์ไม่อนุญาต')}}
 
@@ -659,7 +671,7 @@ document.querySelectorAll('.side [data-pane]').forEach(b=>b.onclick=()=>{documen
 let hidden=new Set(),sortK='name',sortD=1,page=1;const PER=5;
 function rows(){const q=$('#q').value.trim().toLowerCase(),f=$('#fStatus').value;return WORKS.filter(w=>!hidden.has(w.id)&&(!f||w.status===f)&&(!q||(w.name+w.role+w.tool).toLowerCase().includes(q))).sort((a,b)=>{const x=a[sortK],y=b[sortK];return (typeof x==='number'?x-y:String(x).localeCompare(String(y),'th'))*sortD})}
 function renderTable(){const r=rows(),pages=Math.max(1,Math.ceil(r.length/PER));page=Math.min(page,pages);const slice=r.slice((page-1)*PER,page*PER);$('#credN').textContent=WORKS.length-hidden.size;
-$('#tbody').innerHTML=slice.length?slice.map(w=>`<tr><td><b style="font-weight:500">${esc(w.name)}</b></td><td>${esc(w.role)}</td><td>${esc(w.tool)}</td><td><span class="st ${w.status}">${STN[w.status]}</span></td><td class="r">${w.done}%</td><td class="act"><div class="dd"><button aria-label="ตัวเลือก ${esc(w.name)}" aria-haspopup="true" data-dd="${w.id}">⋯</button><div class="menu box" role="menu"><button role="menuitem" data-act="view" data-id="${w.id}">👁 ดูรายละเอียด</button><button role="menuitem" data-act="copy" data-id="${w.id}">⧉ คัดลอกชื่อ</button><button role="menuitem" class="del" data-act="hide" data-id="${w.id}">✕ ซ่อนจากตาราง</button></div></div></td></tr>`).join(''):`<tr><td colspan="6" class="empty">ไม่พบผลงานที่ตรงกับคำค้นหา</td></tr>`;
+$('#tbody').innerHTML=slice.length?slice.map(w=>`<tr><td><b style="font-weight:500">${esc(w.name)}</b></td><td>${esc(w.role)}</td><td>${esc(w.tool)}</td><td><span class="st ${w.status}">${STN[w.status]}</span></td><td class="r">${w.done}%</td><td class="act"><div class="dd"><button aria-label="ตัวเลือก ${esc(w.name)}" aria-haspopup="true" data-dd="${w.id}">⋯</button><div class="menu box" role="menu"><button role="menuitem" data-act="view" data-id="${w.id}">👁 ดูรายละเอียด</button>${isAdmin()?`<button role="menuitem" data-act="edit" data-id="${w.id}">✎ แก้ไขข้อมูล</button>`:''}<button role="menuitem" data-act="copy" data-id="${w.id}">⧉ คัดลอกชื่อ</button><button role="menuitem" class="del" data-act="hide" data-id="${w.id}">✕ ซ่อนจากตาราง</button></div></div></td></tr>`).join(''):`<tr><td colspan="6" class="empty">ไม่พบผลงานที่ตรงกับคำค้นหา</td></tr>`;
 $('#pinfo').textContent=r.length?`แสดง ${(page-1)*PER+1}–${(page-1)*PER+slice.length} จาก ${r.length}`:'ไม่มีข้อมูล';
 let h=`<button ${page<=1?'disabled':''} data-pg="${page-1}" aria-label="หน้าก่อน">‹</button>`;for(let i=1;i<=pages;i++)h+=`<button class="${i===page?'on':''}" data-pg="${i}">${i}</button>`;h+=`<button ${page>=pages?'disabled':''} data-pg="${page+1}" aria-label="หน้าถัดไป">›</button>`;$('#pbtn').innerHTML=h}
 $('#q').oninput=()=>{page=1;renderTable()};$('#fStatus').onchange=()=>{page=1;renderTable()};
@@ -670,6 +682,7 @@ $('#tbody').onclick=e=>{const t=e.target.closest('[data-dd]');if(t){e.stopPropag
 const a=e.target.closest('[data-act]');if(!a)return;e.stopPropagation();closeMenus();const w=WORKS.find(x=>x.id===a.dataset.id);
 if(a.dataset.act==='view')showWork(w.id);
 if(a.dataset.act==='copy')copy(w.name);
+if(a.dataset.act==='edit')openWorkAdmin(w.id);
 if(a.dataset.act==='hide')openModal('ซ่อน '+w.name+'?',`<p>ผลงานนี้จะถูกซ่อนจากตารางเครดิตชั่วคราว (ไม่ได้ลบข้อมูลจริง) กดเลิกทำได้จากแจ้งเตือนด้านล่าง</p>`,[['ยกเลิก','alt'],['ซ่อนผลงาน','danger',()=>{hidden.add(w.id);renderTable();toast('ซ่อนแล้ว',w.name,()=>{hidden.delete(w.id);renderTable()})}]])};
 document.addEventListener('click',e=>{if(!e.target.closest('.dd'))closeMenus()});
 renderTable();
@@ -711,10 +724,10 @@ function applyImages(){
  renderSlides();refreshUser();if($('#ov').classList.contains('open')&&$('#mTitle').textContent==='หลังบ้าน (ADMIN)')renderAdmin();
 }
 let adminTab='img';
-function pickFile(k){if(k==='gal'?!isStaff():!isAdmin())return;pendingSlot=k;const f=$('#fileIn');f.value='';f.multiple=k==='gal';f.click()}
-$('#fileIn').onchange=()=>{const fs=[...$('#fileIn').files];if(!fs.length||!pendingSlot)return;if(pendingSlot==='gal')addCredits(fs);else setSlot(pendingSlot,fs[0])};
+function pickFile(k){if(k==='gal'?!isStaff():!isAdmin())return;pendingSlot=k;const f=$('#fileIn');f.value='';f.multiple=k==='gal'||k==='rev';f.click()}
+$('#fileIn').onchange=()=>{const fs=[...$('#fileIn').files];if(!fs.length||!pendingSlot)return;if(pendingSlot==='gal'||pendingSlot==='rev')addCredits(fs,pendingSlot==='rev'?'review':'credit');else setSlot(pendingSlot,fs[0])};
 const pxPref=()=>{try{return localStorage.getItem('pc-pxopt')!=='0'}catch(e){return true}};
-function processImg(file,k,pixel){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('decode'))};im.onload=()=>{URL.revokeObjectURL(url);const scene=k==='scene'||k==='gal',max=pixel?(scene?200:48):(scene?1280:512),sc=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);if(pixel){const d=g.getImageData(0,0,c.width,c.height),a=d.data;for(let i=0;i<a.length;i+=4){a[i]=Math.round(a[i]/36)*36;a[i+1]=Math.round(a[i+1]/36)*36;a[i+2]=Math.round(a[i+2]/36)*36;a[i+3]=a[i+3]<128?0:255}g.putImageData(d,0,0)}res(c)};im.src=url})}
+function processImg(file,k,pixel){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('decode'))};im.onload=()=>{URL.revokeObjectURL(url);const scene=k==='scene'||k==='gal'||k==='rev',max=pixel?(scene?200:48):(k==='rev'?2000:scene?1280:512),sc=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);if(pixel){const d=g.getImageData(0,0,c.width,c.height),a=d.data;for(let i=0;i<a.length;i+=4){a[i]=Math.round(a[i]/36)*36;a[i+1]=Math.round(a[i+1]/36)*36;a[i+2]=Math.round(a[i+2]/36)*36;a[i+3]=a[i+3]<128?0:255}g.putImageData(d,0,0)}res(c)};im.src=url})}
 const toBlob=(c,type,q)=>new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error('blob')),type,q));
 const rid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 async function loadSlots(){if(!sb)return;const {data,error}=await sb.from('site_images').select('slot,path,px');if(error)return;const m={};(data||[]).forEach(r=>{if(okPath(r.path))m[r.slot]={path:r.path,px:r.px}});cloudSlots=m;applyImages()}
@@ -741,9 +754,9 @@ async function setRole(id,role){if(!isAdmin())return;const u=userList.find(x=>x.
  if(error){toast('เปลี่ยนยศไม่สำเร็จ','ลองใหม่อีกครั้ง');return}
  if(u)u.role=role;renderAdmin();toast(role==='staff'?'แต่งตั้ง STAFF แล้ว':'ปลดจาก STAFF แล้ว',u?u.username:'');blip(role==='staff'?990:440)}
 function renderAdmin(){
- const tabs=`<div class="atabs" role="tablist"><button role="tab" aria-selected="${adminTab==='img'}" data-at="img">🖼 ภาพทั้งเว็บ</button><button role="tab" aria-selected="${adminTab==='games'}" data-at="games">🎮 ลิงก์ / ไฟล์เกม</button><button role="tab" aria-selected="${adminTab==='users'}" data-at="users">👥 ผู้ใช้ / ยศ</button></div>`;
+ const tabs=`<div class="atabs" role="tablist"><button role="tab" aria-selected="${adminTab==='img'}" data-at="img">🖼 ภาพทั้งเว็บ</button><button role="tab" aria-selected="${adminTab==='games'}" data-at="games">🎮 ผลงาน / ลิงก์ / ไฟล์</button><button role="tab" aria-selected="${adminTab==='users'}" data-at="users">👥 ผู้ใช้ / ยศ</button></div>`;
  if(adminTab==='games'){
-  $('#mBody').innerHTML=tabs+`<p class="mode">ใส่ลิงก์ไปเล่นเกม และอัปไฟล์ให้คนดาวน์โหลด (ไฟล์ละไม่เกิน 50 MB) ปุ่มจะขึ้นในหน้ารายละเอียดของผลงานนั้นทันที</p><div class="ulist">${WORKS.map(w=>{const L=LINKS[w.id]||{};return `<div class="urow"><b>${esc(w.name)}</b><small>${L.play_url?'🔗 มีลิงก์':'— ไม่มีลิงก์'} · ${L.file_path?'⬇ '+esc(L.file_name||'มีไฟล์'):'— ไม่มีไฟล์'}</small><button data-wa="${esc(w.id)}">ตั้งค่า</button></div>`}).join('')}</div>`;
+  $('#mBody').innerHTML=tabs+`<p class="mode">แก้สถานะ ความคืบหน้า หน้าที่ เครื่องมือ คำอธิบาย ใส่ลิงก์ไปเล่นเกม และอัปไฟล์ให้คนดาวน์โหลด (ไฟล์ละไม่เกิน 50 MB)</p><div class="ulist">${WORKS.map(w=>{const L=LINKS[w.id]||{};return `<div class="urow"><b>${esc(w.name)}</b><small>${L.play_url?'🔗 มีลิงก์':'— ไม่มีลิงก์'} · ${L.file_path?'⬇ '+esc(L.file_name||'มีไฟล์'):'— ไม่มีไฟล์'}</small><small>${STN[w.status]} ${w.done}%</small><button data-wa="${esc(w.id)}">แก้ไข</button></div>`}).join('')}</div>`;
   $('#mBody').querySelectorAll('[data-wa]').forEach(b=>b.onclick=()=>openWorkAdmin(b.dataset.wa));
   $('#mBody').querySelectorAll('[data-at]').forEach(b=>b.onclick=async()=>{adminTab=b.dataset.at;if(adminTab==='users')await loadUsers();renderAdmin();blip()});
   return}
@@ -769,29 +782,44 @@ const okUrl=u=>typeof u==='string'&&/^https?:\/\/\S{3,500}$/i.test(u);
 const okFile=p=>typeof p==='string'&&/^files\/[A-Za-z0-9_.-]{1,160}$/.test(p);
 const fmtSize=n=>!n?'':n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
 const dlUrl=L=>SB_URL+'/storage/v1/object/public/games/'+L.file_path.split('/').map(encodeURIComponent).join('/')+'?download='+encodeURIComponent(L.file_name||'game');
-async function loadLinks(){if(!sb)return;const {data,error}=await sb.from('work_links').select('work_id,play_url,file_path,file_name,file_size');if(error)return;const m={};(data||[]).forEach(r=>m[r.work_id]=r);LINKS=m}
+async function loadLinks(){if(!sb)return;const {data,error}=await sb.from('work_links').select('work_id,play_url,file_path,file_name,file_size,status,done,role,tool,descr');if(error)return;const m={};(data||[]).forEach(r=>m[r.work_id]=r);LINKS=m;applyMeta()}
+function applyMeta(){WORKS.forEach(w=>{const d=WDEF[w.id],r=LINKS[w.id]||{};w.status=STN[r.status]?r.status:d.status;w.done=Number.isInteger(r.done)?Math.max(0,Math.min(100,r.done)):d.done;w.role=r.role||d.role;w.tool=r.tool||d.tool;w.desc=r.descr||d.desc});
+ renderStats();renderTable();renderCards();renderSlides()}
 function workBtns(w){const L=LINKS[w.id]||{},b=[];
  if(okUrl(L.play_url))b.push([w.cat==='roblox'?'▶ เล่นบน Roblox':w.cat==='html'?'▶ เล่นเกม':'🔗 เปิดลิงก์','',()=>{window.open(L.play_url,'_blank','noopener,noreferrer');blip(990)}]);
  if(okFile(L.file_path))b.push(['⬇ ดาวน์โหลด'+(L.file_size?' ('+fmtSize(L.file_size)+')':''),'',()=>{const a=document.createElement('a');a.href=dlUrl(L);a.rel='noopener';document.body.appendChild(a);a.click();a.remove();toast('เริ่มดาวน์โหลดแล้ว',L.file_name||w.name);blip(990)}]);
  return b}
 let gameTarget=null,gameBusy=false;
 function openWorkAdmin(id){if(!isAdmin())return;const w=WORKS.find(x=>x.id===id);if(!w)return;
- openModal('ลิงก์ / ไฟล์: '+w.name,'',[['เสร็จ','alt']]);renderWorkAdmin(w)}
+ openModal('แก้ไข: '+w.name,'',[['เสร็จ','alt']]);renderWorkAdmin(w)}
 function renderWorkAdmin(w){const L=LINKS[w.id]||{};
  $('#mBody').innerHTML=`<div class="gl">
+ <div class="sec"><b>📝 ข้อมูลผลงาน</b><small style="display:block;margin:4px 0 8px">แสดงในการ์ด ตารางเครดิต และหน้ารายละเอียด</small>
+  <div class="row2"><label style="flex:1 1 160px"><small>สถานะ</small><select class="inp" id="wmSt" style="width:100%">${Object.entries(STN).map(([k,v])=>`<option value="${k}" ${w.status===k?'selected':''}>${v}</option>`).join('')}</select></label><label style="flex:1 1 160px"><small>ความคืบหน้า: <b id="wmDv">${w.done}</b>%</small><input id="wmDone" type="range" min="0" max="100" step="5" value="${w.done}" style="width:100%"></label></div>
+  <label><small>หน้าที่</small><input class="inp" id="wmRole" maxlength="120" style="width:100%"></label>
+  <label><small>เครื่องมือ</small><input class="inp" id="wmTool" maxlength="120" style="width:100%"></label>
+  <label><small>คำอธิบาย</small><textarea class="inp" id="wmDesc" maxlength="600" rows="3" style="width:100%;resize:vertical"></textarea></label>
+  <div class="row2" style="margin-top:6px"><button id="wmSave" type="button">บันทึกข้อมูล</button><button class="rm" id="wmReset" type="button">คืนค่าเดิม</button></div></div>
  <div class="sec"><b>🔗 ลิงก์ไปเล่นเกม</b><small style="display:block;margin:4px 0 8px">เช่น ลิงก์หน้าเกม Roblox หรือเว็บที่เล่นเกม HTML ได้ (ต้องขึ้นต้นด้วย https://)</small>
   <div class="row2"><input class="inp" id="wlUrl" type="url" placeholder="https://..." value="${esc(L.play_url||'')}"><button id="wlSave" type="button">บันทึกลิงก์</button><button class="rm" id="wlDel" type="button" ${L.play_url?'':'disabled'}>ลบลิงก์</button></div></div>
  <div class="sec"><b>⬇ ไฟล์ดาวน์โหลดเกม</b><small style="display:block;margin:4px 0 8px">${L.file_path?'ไฟล์ปัจจุบัน: <span id="wlFn"></span> · '+fmtSize(L.file_size):'ยังไม่มีไฟล์'} · รับไฟล์ทุกชนิด (.zip, .exe, .apk, .html …) ไม่เกิน 50 MB</small>
   <div class="row2"><button id="wlUp" type="button">${L.file_path?'อัปไฟล์ใหม่แทน':'อัปโหลดไฟล์'}</button><button class="rm" id="wlRm" type="button" ${L.file_path?'':'disabled'}>ลบไฟล์</button></div>
   <div class="upbar" id="wlBar" hidden style="margin-top:8px"><i></i></div></div></div>`;
  if($('#wlFn'))$('#wlFn').textContent=L.file_name||'';
+ $('#wmRole').value=w.role;$('#wmTool').value=w.tool;$('#wmDesc').value=w.desc;
+ $('#wmDone').oninput=()=>{$('#wmDv').textContent=$('#wmDone').value;if($('#wmDone').value==='100')$('#wmSt').value='done'};
+ $('#wmSave').onclick=()=>saveMeta(w,{status:$('#wmSt').value,done:+$('#wmDone').value,role:$('#wmRole').value.trim().slice(0,120)||null,tool:$('#wmTool').value.trim().slice(0,120)||null,descr:$('#wmDesc').value.trim().slice(0,600)||null});
+ $('#wmReset').onclick=()=>saveMeta(w,{status:null,done:null,role:null,tool:null,descr:null},true);
  $('#wlSave').onclick=()=>saveLink(w,$('#wlUrl').value.trim());
  $('#wlUrl').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveLink(w,$('#wlUrl').value.trim())}};
  $('#wlDel').onclick=()=>saveLink(w,'');
  $('#wlUp').onclick=()=>{if(gameBusy)return;gameTarget=w;const f=$('#gameIn');f.value='';f.click()};
  $('#wlRm').onclick=()=>removeGameFile(w)}
-async function upsertLink(w,patch){const cur=LINKS[w.id]||{work_id:w.id};const row=Object.assign({work_id:w.id,play_url:cur.play_url||null,file_path:cur.file_path||null,file_name:cur.file_name||null,file_size:cur.file_size||null},patch,{updated_at:new Date().toISOString()});
+async function upsertLink(w,patch){const cur=LINKS[w.id]||{work_id:w.id};const row=Object.assign({work_id:w.id,play_url:cur.play_url||null,file_path:cur.file_path||null,file_name:cur.file_name||null,file_size:cur.file_size||null,status:cur.status||null,done:Number.isInteger(cur.done)?cur.done:null,role:cur.role||null,tool:cur.tool||null,descr:cur.descr||null},patch,{updated_at:new Date().toISOString()});
  const {error}=await sb.from('work_links').upsert(row);if(error)throw error;LINKS[w.id]=row}
+async function saveMeta(w,patch,reset){if(!isAdmin())return;
+ try{await upsertLink(w,patch);applyMeta();toast(reset?'คืนค่าข้อมูลเดิมแล้ว':'บันทึกข้อมูลแล้ว',w.name+' · '+STN[w.status]+' '+w.done+'%');blip(990)}catch(e){toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง')}
+ if($('#wmSave'))renderWorkAdmin(w)}
 async function saveLink(w,url){if(!isAdmin())return;if(url&&!/^https?:\/\//i.test(url))url='https://'+url;
  if(url&&!okUrl(url)){toast('ลิงก์ไม่ถูกต้อง','ต้องเป็นลิงก์เว็บ เช่น https://www.roblox.com/games/...');return}
  try{await upsertLink(w,{play_url:url||null});toast(url?'บันทึกลิงก์แล้ว':'ลบลิงก์แล้ว',w.name);blip(url?990:440)}catch(e){toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง')}
@@ -814,44 +842,47 @@ async function removeGameFile(w){const L=LINKS[w.id];if(!isAdmin()||!L||!okFile(
  try{const old=L.file_path;await upsertLink(w,{file_path:null,file_name:null,file_size:null});sb.storage.from('games').remove([old]);toast('ลบไฟล์แล้ว',w.name);blip(440)}catch(e){toast('ลบไม่สำเร็จ','ลองใหม่อีกครั้ง')}
  if($('#wlRm'))renderWorkAdmin(w)}
 
-/* ---------- แกลเลอรีเครดิต (STAFF + ADMIN จัดการ) ---------- */
+/* ---------- แกลเลอรีเครดิต (STAFF + ADMIN) + รีวิวลูกค้า (ADMIN) ---------- */
 let credits=[];
-async function loadCredits(){if(!sb)return;const {data,error}=await sb.from('credit_images').select('id,path,caption,sort').order('sort',{ascending:true}).order('id');if(error)return;credits=(data||[]).filter(r=>okPath(r.path));renderGallery()}
-function openGalleryPane(){const b=document.querySelector('.side [data-pane="pGallery"]');if(b)b.click();location.hash='savefile'}
-function renderGallery(){
- $('#galN').textContent=credits.length;
- const st=isStaff();
- $('#galTools').innerHTML=st?`<div class="galtools"><input class="inp" id="galCap" maxlength="120" placeholder="คำบรรยายภาพ (ไม่บังคับ)"><button class="btn" id="galAdd" type="button">＋ เพิ่มรูปเข้าคิว</button><small style="flex-basis:100%;color:var(--soft)">คุณเป็น ${isAdmin()?'ADMIN':'STAFF'}: เพิ่มได้หลายรูปพร้อมกัน ลบ และเลื่อนลำดับด้วยปุ่ม ◀ ▶</small></div>`:'';
- if(st)$('#galAdd').onclick=()=>pickFile('gal');
- $('#gal').innerHTML=credits.length?credits.map((c,i)=>`<figure><img src="${esc(pubUrl(c.path))}" alt="" loading="lazy" data-zoom="${c.id}"><figcaption></figcaption>${st?`<div class="gt"><button data-mv="-1" data-id="${c.id}" ${i===0?'disabled':''} aria-label="เลื่อนขึ้นก่อน">◀</button><button data-mv="1" data-id="${c.id}" ${i===credits.length-1?'disabled':''} aria-label="เลื่อนไปทีหลัง">▶</button><button data-ed="${c.id}" aria-label="แก้คำบรรยาย">✎</button><button class="del" data-del="${c.id}" aria-label="ลบ">✕</button></div>`:''}</figure>`).join(''):`<div class="empty box" style="grid-column:1/-1">ยังไม่มีภาพในแกลเลอรี${st?' กด ＋ เพิ่มรูปเข้าคิว เพื่อเริ่ม':''}</div>`;
- $('#gal').querySelectorAll('figcaption').forEach((f,i)=>f.textContent=credits[i].caption||'')}
-async function addCredits(files){if(!isStaff()||busy)return;files=files.filter(checkFile).slice(0,10);if(!files.length)return;busy=true;
- const cap=(($('#galCap')&&$('#galCap').value)||'').trim().slice(0,120);let ok=0;toast('กำลังอัปโหลด…',files.length+' รูป');
- try{for(const f of files){try{const c=await processImg(f,'gal',false);const blob=await toBlob(c,'image/jpeg',.85);const path='credits/'+rid()+'.jpg';
+const KIND={credit:{grid:'#gal',tools:'#galTools',n:'#galN',pick:'gal',can:()=>isStaff(),cap:'คำบรรยายภาพ (ไม่บังคับ)',add:'＋ เพิ่มรูปเข้าคิว',empty:'ยังไม่มีภาพในแกลเลอรี',dir:'credits/'},
+ review:{grid:'#rev',tools:'#revTools',n:'#revN',pick:'rev',can:()=>isAdmin(),cap:'ชื่อลูกค้า / ข้อความสั้น ๆ (ไม่บังคับ)',add:'＋ เพิ่มภาพรีวิว',empty:'ยังไม่มีรีวิว',dir:'reviews/'}};
+const listOf=k=>credits.filter(c=>(c.kind||'credit')===k);
+async function loadCredits(){if(!sb)return;const {data,error}=await sb.from('credit_images').select('id,path,caption,sort,kind').order('sort',{ascending:true}).order('id');if(error)return;credits=(data||[]).filter(r=>okPath(r.path));renderGallery()}
+function openGalleryPane(p){const b=document.querySelector(`.side [data-pane="${p||'pGallery'}"]`);if(b)b.click();location.hash='savefile'}
+function renderGallery(){Object.keys(KIND).forEach(renderKind)}
+function renderKind(k){const K=KIND[k],list=listOf(k),st=K.can();
+ $(K.n).textContent=list.length;
+ $(K.tools).innerHTML=st?`<div class="galtools"><input class="inp" data-cap="${k}" maxlength="120" placeholder="${K.cap}"><button class="btn" data-add="${k}" type="button">${K.add}</button><small style="flex-basis:100%;color:var(--soft)">คุณเป็น ${isAdmin()?'ADMIN':'STAFF'}: เพิ่มได้หลายรูปพร้อมกัน ลบ และเลื่อนลำดับด้วยปุ่ม ◀ ▶</small></div>`:'';
+ if(st)$(K.tools).querySelector('[data-add]').onclick=()=>pickFile(K.pick);
+ $(K.grid).innerHTML=list.length?list.map((c,i)=>`<figure><img src="${esc(pubUrl(c.path))}" alt="" loading="lazy" data-zoom="${c.id}"><figcaption></figcaption>${st?`<div class="gt"><button data-mv="-1" data-id="${c.id}" ${i===0?'disabled':''} aria-label="เลื่อนขึ้นก่อน">◀</button><button data-mv="1" data-id="${c.id}" ${i===list.length-1?'disabled':''} aria-label="เลื่อนไปทีหลัง">▶</button><button data-ed="${c.id}" aria-label="แก้คำบรรยาย">✎</button><button class="del" data-del="${c.id}" aria-label="ลบ">✕</button></div>`:''}</figure>`).join(''):`<div class="empty box" style="grid-column:1/-1">${K.empty}${st?' กด '+K.add+' เพื่อเริ่ม':''}</div>`;
+ $(K.grid).querySelectorAll('figcaption').forEach((f,i)=>f.textContent=list[i].caption||'')}
+async function addCredits(files,k){k=k||'credit';const K=KIND[k];if(!K.can()||busy)return;files=files.filter(checkFile).slice(0,10);if(!files.length)return;busy=true;
+ const capEl=$(`[data-cap="${k}"]`),cap=((capEl&&capEl.value)||'').trim().slice(0,120);let ok=0;toast('กำลังอัปโหลด…',files.length+' รูป');
+ try{for(const f of files){try{const c=await processImg(f,K.pick,false);const blob=await toBlob(c,'image/jpeg',.88);const path=K.dir+rid()+'.jpg';
   const up=await sb.storage.from('pc').upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000'});if(up.error)throw up.error;
-  const last=credits.length?credits[credits.length-1].sort:0;
-  const {data,error}=await sb.from('credit_images').insert({path,caption:cap,sort:Math.max(last+1,Date.now()/1000)}).select('id,path,caption,sort').single();
-  if(error){sb.storage.from('pc').remove([path]);throw error}credits.push(data);ok++;renderGallery()}catch(e){}}
-  if($('#galCap'))$('#galCap').value='';
-  toast(ok?'เพิ่มเข้าแกลเลอรีแล้ว':'เพิ่มรูปไม่สำเร็จ',ok?ok+' รูป':'บัญชีนี้อาจไม่มีสิทธิ์ STAFF');if(ok)blip(990)}
+  const l=listOf(k),last=l.length?l[l.length-1].sort:0;
+  const {data,error}=await sb.from('credit_images').insert({path,caption:cap,kind:k,sort:Math.max(last+1,Date.now()/1000)}).select('id,path,caption,sort,kind').single();
+  if(error){sb.storage.from('pc').remove([path]);throw error}credits.push(data);ok++;renderKind(k)}catch(e){}}
+  const ce=$(`[data-cap="${k}"]`);if(ce)ce.value='';
+  toast(ok?(k==='review'?'เพิ่มรีวิวแล้ว':'เพิ่มเข้าแกลเลอรีแล้ว'):'เพิ่มรูปไม่สำเร็จ',ok?ok+' รูป':'บัญชีนี้อาจไม่มีสิทธิ์');if(ok)blip(990)}
  finally{busy=false}}
-async function moveCredit(id,dir){const i=credits.findIndex(c=>c.id===id),j=i+dir;if(i<0||j<0||j>=credits.length||busy)return;busy=true;
- const a=credits[i],b=credits[j];let sa=a.sort,sb2=b.sort;if(sa===sb2){sa=i;sb2=j}
+async function moveCredit(id,dir){const c0=credits.find(c=>c.id===id);if(!c0||busy)return;const k=c0.kind||'credit',list=listOf(k),i=list.indexOf(c0),j=i+dir;if(j<0||j>=list.length)return;busy=true;
+ const a=list[i],b=list[j];let sa=a.sort,sb2=b.sort;if(sa===sb2){sa=i;sb2=j}
  try{const r1=await sb.from('credit_images').update({sort:sb2}).eq('id',a.id);const r2=await sb.from('credit_images').update({sort:sa}).eq('id',b.id);if(r1.error||r2.error)throw 0;
-  a.sort=sb2;b.sort=sa;credits[i]=b;credits[j]=a;renderGallery();blip()}catch(e){toast('เลื่อนลำดับไม่สำเร็จ','ลองใหม่อีกครั้ง');loadCredits()}finally{busy=false}}
-async function delCredit(id){const c=credits.find(x=>x.id===id);if(!c)return;
- openModal('ลบภาพนี้ออกจากแกลเลอรี?',`<p>ภาพจะถูกลบออกจากหน้าเครดิตและเซิร์ฟเวอร์ ลบแล้วกู้คืนไม่ได้</p>`,[['ยกเลิก','alt'],['ลบภาพ','danger',async()=>{
+  a.sort=sb2;b.sort=sa;credits.sort((x,y)=>x.sort-y.sort||x.id-y.id);renderKind(k);blip()}catch(e){toast('เลื่อนลำดับไม่สำเร็จ','ลองใหม่อีกครั้ง');loadCredits()}finally{busy=false}}
+async function delCredit(id){const c=credits.find(x=>x.id===id);if(!c)return;const rv=c.kind==='review';
+ openModal(rv?'ลบรีวิวนี้?':'ลบภาพนี้ออกจากแกลเลอรี?',`<p>ภาพจะถูกลบออกจากเว็บและเซิร์ฟเวอร์ ลบแล้วกู้คืนไม่ได้</p>`,[['ยกเลิก','alt'],[rv?'ลบรีวิว':'ลบภาพ','danger',async()=>{
   const {error}=await sb.from('credit_images').delete().eq('id',id);if(error){toast('ลบไม่สำเร็จ','ลองใหม่อีกครั้ง');return}
-  sb.storage.from('pc').remove([c.path]);credits=credits.filter(x=>x.id!==id);renderGallery();toast('ลบภาพแล้ว',c.caption||'')}]])}
+  sb.storage.from('pc').remove([c.path]);credits=credits.filter(x=>x.id!==id);renderGallery();toast('ลบแล้ว',c.caption||'')}]])}
 function editCredit(id){const c=credits.find(x=>x.id===id);if(!c)return;
  openModal('แก้คำบรรยายภาพ','<input class="inp" id="capEd" maxlength="120" style="width:100%">',[['ยกเลิก','alt'],['บันทึก','',async()=>{const v=(window.__capv||'').trim().slice(0,120);
   const {error}=await sb.from('credit_images').update({caption:v}).eq('id',id);if(error){toast('บันทึกไม่สำเร็จ','ลองใหม่อีกครั้ง');return}c.caption=v;renderGallery();toast('บันทึกคำบรรยายแล้ว',v)}]]);
  const inp=$('#capEd');inp.value=c.caption||'';window.__capv=inp.value;inp.oninput=()=>window.__capv=inp.value;inp.focus()}
-$('#gal').onclick=e=>{const t=e.target.closest('button,[data-zoom]');if(!t)return;
+['#gal','#rev'].forEach(sel=>$(sel).onclick=e=>{const t=e.target.closest('button,[data-zoom]');if(!t)return;
  if(t.dataset.mv)return moveCredit(+t.dataset.id,+t.dataset.mv);
  if(t.dataset.del)return delCredit(+t.dataset.del);
  if(t.dataset.ed)return editCredit(+t.dataset.ed);
- if(t.dataset.zoom){const c=credits.find(x=>x.id===+t.dataset.zoom);if(c){openModal(c.caption||'แกลเลอรีเครดิต',`<img src="${esc(pubUrl(c.path))}" alt="" style="width:100%;border:3px solid var(--line);border-radius:4px">`,[['ปิด','alt']])}}};
+ if(t.dataset.zoom){const c=credits.find(x=>x.id===+t.dataset.zoom);if(c)openModal(c.caption||(c.kind==='review'?'รีวิวจากลูกค้า':'แกลเลอรีเครดิต'),`<img src="${esc(pubUrl(c.path))}" alt="" style="width:100%;border:3px solid var(--line);border-radius:4px">`,[['ปิด','alt']])}});
 
 applyImages();renderGallery();
 if(sb){
