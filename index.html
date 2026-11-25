@@ -73,11 +73,11 @@ nav.top .wrap{display:flex;align-items:center;gap:14px;padding:8px max(4vw,14px)
 .daynight input:checked+.tr::before{content:"☾";left:7px;right:auto;color:#fff}
 
 /* HERO */
-.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(20px,4vw,48px);align-items:center}
+.hero{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center}
 .hero h1{font-size:clamp(42px,7vw,76px);color:var(--ink)}
 .hero h1 span{display:block;color:var(--pu)}
 .hero p{font-size:17px;max-width:34em;color:var(--soft);margin:16px 0 22px}
-.stage{position:relative;aspect-ratio:16/10;overflow:hidden}
+.stage{display:none!important}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
 .stage .hud{position:absolute;left:10px;top:10px;font:700 15px/1 var(--px);color:#fff;text-shadow:2px 2px 0 #22163f;display:flex;gap:12px;flex-wrap:wrap}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:26px}
@@ -201,6 +201,7 @@ html[data-mode=night] .side{background:#0b0720}
 
 /* AUTH */
 .acct{position:relative;margin-left:4px}
+@media(max-width:860px){.top .acct{margin-left:auto}}
 .acct .who-btn{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 10px 4px 4px;border:3px solid var(--line);background:var(--panel);border-radius:4px;font:600 15px/1 var(--px);max-width:180px}
 .acct .who-btn img{width:30px;height:30px;flex:none;object-fit:contain}
 .acct .who-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -540,10 +541,12 @@ secs.forEach(s=>spy.observe(s));
 const cnt=c=>WORKS.filter(w=>w.cat===c).length;
 function renderStats(){$('#stats').innerHTML=[[WORKS.length,'ผลงานทั้งหมด'],[cnt('html'),'เกม HTML'],[cnt('roblox'),'เกม Roblox'],[WORKS.filter(w=>w.status==='done').length,'เคลียร์แล้ว']].map(([n,t])=>`<div class="stat box"><b>${n}</b><span>${t}</span></div>`).join('')}
 renderStats();
-const WDEF={};WORKS.forEach(w=>WDEF[w.id]={status:w.status,done:w.done,role:w.role,tool:w.tool,desc:w.desc});
+const WDEF={};WORKS.forEach(w=>WDEF[w.id]={status:w.status,done:w.done,role:w.role,tool:w.tool,desc:w.desc,name:w.name,cat:w.cat,col:w.col,sp:w.sp});
+const BASE=WORKS.slice(),CUSTOM={};
+const SPRITES=['star','sword','egg','juice','target','heart','cloudmmo','tree','office','fist','gear','globe','hero','cloud'];
 
 /* ---------- IMAGES (ADMIN แก้ได้) ---------- */
-const SLOTS=[['logo','โลโก้สตูดิโอ','cloud'],['avatar','ตัวละคร / รูปโปรไฟล์','hero'],['scene','ฉากหน้าแรก',null]].concat(WORKS.map(w=>['w:'+w.id,w.name,w.sp]));
+const SLOTS=[['logo','โลโก้สตูดิโอ','cloud'],['avatar','ตัวละคร / รูปโปรไฟล์','hero'],].concat(WORKS.map(w=>['w:'+w.id,w.name,w.sp]));
 let cloudSlots={},pendingSlot=null;
 const SB_URL="https://hspnikyapxhztokfjgjb.supabase.co",SB_KEY="sb_publishable_yYjwGLmvcVPCztdweb7_ng_pSaoxUr2";
 const sb=(()=>{try{if(!window.supabase||/_HERE$/.test(SB_URL))return null;
@@ -599,13 +602,14 @@ async function toggleFav(id){const u=me();if(!u){openAuth('login','เข้า�
  toast(i<0?'ถูกใจแล้ว ♥':'เลิกถูกใจแล้ว',w.name);blip(i<0?990:440)}
 function refreshUser(){const u=me(),a=$('#acct');if(typeof renderTable==='function'&&$('#tbody'))try{renderTable()}catch(e){}
 if(u){const badge=u.role==='admin'?'<b class="adm">ADMIN</b>':u.role==='staff'?'<b class="stf">STAFF</b>':'';
-a.innerHTML=`<button class="who-btn" id="whoBtn" aria-haspopup="true" aria-expanded="false"><img class="${pxOf('avatar')?'px':''}" src="${esc(imgOf('avatar','hero'))}" alt=""><span></span>${badge}</button><div class="menu box" role="menu" id="whoMenu"><div class="hd">ล็อกอินเป็น <b></b> · ${ROLE_TXT[u.role]||''}</div><button role="menuitem" id="goFav">♥ ผลงานที่ชอบ (${u.favs.length})</button>${isAdmin()?'<button role="menuitem" id="goAdmin">✎ จัดการภาพทั้งหมด</button><button role="menuitem" id="goUsers">👥 จัดการผู้ใช้ / ยศ</button>':''}${isStaff()?'<button role="menuitem" id="goGal">🖼 จัดการแกลเลอรีเครดิต</button>':''}${isAdmin()?'<button role="menuitem" id="goRev">⭐ จัดการรีวิวลูกค้า</button>':''}<button role="menuitem" class="del" id="doOut">⏻ ออกจากระบบ</button></div>`;
+a.innerHTML=`<button class="who-btn" id="whoBtn" aria-haspopup="true" aria-expanded="false"><img class="${pxOf('avatar')?'px':''}" src="${esc(imgOf('avatar','hero'))}" alt=""><span></span>${badge}</button><div class="menu box" role="menu" id="whoMenu"><div class="hd">ล็อกอินเป็น <b></b> · ${ROLE_TXT[u.role]||''}</div><button role="menuitem" id="goFav">♥ ผลงานที่ชอบ (${u.favs.length})</button>${isAdmin()?'<button role="menuitem" id="goAdmin">✎ จัดการภาพทั้งหมด</button><button role="menuitem" id="goWorks">🎮 เพิ่ม / ลบ / แก้ผลงาน</button><button role="menuitem" id="goUsers">👥 จัดการผู้ใช้ / ยศ</button>':''}${isStaff()?'<button role="menuitem" id="goGal">🖼 จัดการแกลเลอรีเครดิต</button>':''}${isAdmin()?'<button role="menuitem" id="goRev">⭐ จัดการรีวิวลูกค้า</button>':''}<button role="menuitem" class="del" id="doOut">⏻ ออกจากระบบ</button></div>`;
 a.querySelector('.who-btn span').textContent=u.name;a.querySelector('.hd b').textContent=u.name;
 $('#whoBtn').onclick=e=>{e.stopPropagation();const m=$('#whoMenu'),o=!m.classList.contains('open');closeMenus();m.classList.toggle('open',o);$('#whoBtn').setAttribute('aria-expanded',o);blip()};
 $('#goFav').onclick=()=>{closeMenus();tab='fav';renderTabs();renderCards();location.hash='works'};
 $('#doOut').onclick=()=>{closeMenus();logout()};
 if($('#goAdmin'))$('#goAdmin').onclick=()=>{closeMenus();openAdmin('img')};
 if($('#goUsers'))$('#goUsers').onclick=()=>{closeMenus();openAdmin('users')};
+if($('#goWorks'))$('#goWorks').onclick=()=>{closeMenus();openAdmin('games')};
 if($('#goGal'))$('#goGal').onclick=()=>{closeMenus();openGalleryPane()};
 if($('#goRev'))$('#goRev').onclick=()=>{closeMenus();openGalleryPane('pReviews')};
 $('.side .who b').textContent=u.name;$('.side .who small').textContent=(ROLE_TXT[u.role]||'')+' · ถูกใจ '+u.favs.length+' ผลงาน';}
@@ -711,7 +715,7 @@ const bob=Math.floor(t/8)%2;x.drawImage(heroImg,70,91-bob,12,12);
 if(night){x.fillStyle='#ffd84d';[[30,70],[120,82],[180,64]].forEach(([fx,fy],i)=>{if((Math.floor(t/15)+i)%2)x.fillRect(fx+Math.round(Math.sin(t/20+i)*3),fy,1,1)})}}
 let raf;function loop(){t++;draw();raf=requestAnimationFrame(loop)}
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-function startStop(){cancelAnimationFrame(raf);if($('#anim').checked&&!still)loop();else draw()}
+function startStop(){cancelAnimationFrame(raf)}
 $('#anim').onchange=()=>{startStop();blip()};
 new MutationObserver(()=>{if(!$('#anim').checked||still)draw()}).observe(root,{attributes:true,attributeFilter:['data-mode']});
 heroImg.onload=cloudImg.onload=()=>draw();
@@ -756,7 +760,10 @@ async function setRole(id,role){if(!isAdmin())return;const u=userList.find(x=>x.
 function renderAdmin(){
  const tabs=`<div class="atabs" role="tablist"><button role="tab" aria-selected="${adminTab==='img'}" data-at="img">🖼 ภาพทั้งเว็บ</button><button role="tab" aria-selected="${adminTab==='games'}" data-at="games">🎮 ผลงาน / ลิงก์ / ไฟล์</button><button role="tab" aria-selected="${adminTab==='users'}" data-at="users">👥 ผู้ใช้ / ยศ</button></div>`;
  if(adminTab==='games'){
-  $('#mBody').innerHTML=tabs+`<p class="mode">แก้สถานะ ความคืบหน้า หน้าที่ เครื่องมือ คำอธิบาย ใส่ลิงก์ไปเล่นเกม และอัปไฟล์ให้คนดาวน์โหลด (ไฟล์ละไม่เกิน 50 MB)</p><div class="ulist">${WORKS.map(w=>{const L=LINKS[w.id]||{};return `<div class="urow"><b>${esc(w.name)}</b><small>${L.play_url?'🔗 มีลิงก์':'— ไม่มีลิงก์'} · ${L.file_path?'⬇ '+esc(L.file_name||'มีไฟล์'):'— ไม่มีไฟล์'}</small><small>${STN[w.status]} ${w.done}%</small><button data-wa="${esc(w.id)}">แก้ไข</button></div>`}).join('')}</div>`;
+  $('#mBody').innerHTML=tabs+`<p class="mode">เพิ่ม ลบ และแก้ผลงาน: ชื่อ หมวด สถานะ ความคืบหน้า หน้าที่ เครื่องมือ คำอธิบาย ลิงก์ไปเล่นเกม และไฟล์ดาวน์โหลด (ไฟล์ละไม่เกิน 50 MB)</p><div style="margin-bottom:10px"><button class="btn" id="addWork" type="button">＋ เพิ่มผลงานใหม่</button></div><div class="ulist">${WORKS.map(w=>{const L=LINKS[w.id]||{};return `<div class="urow"><b>${esc(w.name)}</b><small>${L.play_url?'🔗 มีลิงก์':'— ไม่มีลิงก์'} · ${L.file_path?'⬇ '+esc(L.file_name||'มีไฟล์'):'— ไม่มีไฟล์'}</small><small>${STN[w.status]} ${w.done}%</small><button data-wa="${esc(w.id)}">แก้ไข</button><button class="rm" data-wd="${esc(w.id)}">ลบ</button></div>`}).join('')}</div>${BASE.filter(w=>LINKS[w.id]&&LINKS[w.id].hidden).length?`<p class="mode" style="margin-top:12px">ผลงานที่ลบไปแล้ว</p><div class="ulist">${BASE.filter(w=>LINKS[w.id]&&LINKS[w.id].hidden).map(w=>`<div class="urow"><b>${esc(w.name)}</b><button data-wr="${esc(w.id)}">↺ กู้คืน</button></div>`).join('')}</div>`:''}`;
+  $('#addWork').onclick=addWork;
+  $('#mBody').querySelectorAll('[data-wd]').forEach(b=>b.onclick=()=>{const w=WORKS.find(x=>x.id===b.dataset.wd);if(w)deleteWork(w)});
+  $('#mBody').querySelectorAll('[data-wr]').forEach(b=>b.onclick=()=>restoreWork(b.dataset.wr));
   $('#mBody').querySelectorAll('[data-wa]').forEach(b=>b.onclick=()=>openWorkAdmin(b.dataset.wa));
   $('#mBody').querySelectorAll('[data-at]').forEach(b=>b.onclick=async()=>{adminTab=b.dataset.at;if(adminTab==='users')await loadUsers();renderAdmin();blip()});
   return}
@@ -782,9 +789,14 @@ const okUrl=u=>typeof u==='string'&&/^https?:\/\/\S{3,500}$/i.test(u);
 const okFile=p=>typeof p==='string'&&/^files\/[A-Za-z0-9_.-]{1,160}$/.test(p);
 const fmtSize=n=>!n?'':n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
 const dlUrl=L=>SB_URL+'/storage/v1/object/public/games/'+L.file_path.split('/').map(encodeURIComponent).join('/')+'?download='+encodeURIComponent(L.file_name||'game');
-async function loadLinks(){if(!sb)return;const {data,error}=await sb.from('work_links').select('work_id,play_url,file_path,file_name,file_size,status,done,role,tool,descr');if(error)return;const m={};(data||[]).forEach(r=>m[r.work_id]=r);LINKS=m;applyMeta()}
-function applyMeta(){WORKS.forEach(w=>{const d=WDEF[w.id],r=LINKS[w.id]||{};w.status=STN[r.status]?r.status:d.status;w.done=Number.isInteger(r.done)?Math.max(0,Math.min(100,r.done)):d.done;w.role=r.role||d.role;w.tool=r.tool||d.tool;w.desc=r.descr||d.desc});
- renderStats();renderTable();renderCards();renderSlides()}
+async function loadLinks(){if(!sb)return;const {data,error}=await sb.from('work_links').select('*');if(error)return;const m={};(data||[]).forEach(r=>m[r.work_id]=r);LINKS=m;applyMeta()}
+function rebuildWorks(){const list=BASE.filter(w=>!(LINKS[w.id]&&LINKS[w.id].hidden));
+ Object.values(LINKS).filter(r=>r.custom&&!r.hidden).sort((a,b)=>(a.sort||0)-(b.sort||0)).forEach(r=>{const w=CUSTOM[r.work_id]||(CUSTOM[r.work_id]={id:r.work_id,feat:0});
+  if(!WDEF[w.id])WDEF[w.id]={status:'plan',done:0,role:'-',tool:'-',desc:'',name:'ผลงานใหม่',cat:'other',col:'#6b3fd1',sp:'star'};list.push(w);
+  if(!SLOTS.some(x=>x[0]==='w:'+w.id))SLOTS.push(['w:'+w.id,r.name||'ผลงานใหม่',r.sp||'star'])});
+ WORKS.length=0;list.forEach(w=>WORKS.push(w))}
+function applyMeta(){rebuildWorks();WORKS.forEach(w=>{const d=WDEF[w.id],r=LINKS[w.id]||{};w.status=STN[r.status]?r.status:d.status;w.done=Number.isInteger(r.done)?Math.max(0,Math.min(100,r.done)):d.done;w.role=r.role||d.role;w.tool=r.tool||d.tool;w.desc=r.descr||d.desc;w.name=r.name||d.name;w.cat=CAT[r.cat]?r.cat:d.cat;w.col=/^#[0-9a-fA-F]{6}$/.test(r.col||'')?r.col:d.col;w.sp=SPR[r.sp]?r.sp:d.sp;const sl=SLOTS.find(x=>x[0]==='w:'+w.id);if(sl){sl[1]=w.name;sl[2]=w.sp}});
+ renderStats();try{renderTabs()}catch(e){}renderTable();renderCards();renderSlides()}
 function workBtns(w){const L=LINKS[w.id]||{},b=[];
  if(okUrl(L.play_url))b.push([w.cat==='roblox'?'▶ เล่นบน Roblox':w.cat==='html'?'▶ เล่นเกม':'🔗 เปิดลิงก์','',()=>{window.open(L.play_url,'_blank','noopener,noreferrer');blip(990)}]);
  if(okFile(L.file_path))b.push(['⬇ ดาวน์โหลด'+(L.file_size?' ('+fmtSize(L.file_size)+')':''),'',()=>{const a=document.createElement('a');a.href=dlUrl(L);a.rel='noopener';document.body.appendChild(a);a.click();a.remove();toast('เริ่มดาวน์โหลดแล้ว',L.file_name||w.name);blip(990)}]);
@@ -795,28 +807,44 @@ function openWorkAdmin(id){if(!isAdmin())return;const w=WORKS.find(x=>x.id===id)
 function renderWorkAdmin(w){const L=LINKS[w.id]||{};
  $('#mBody').innerHTML=`<div class="gl">
  <div class="sec"><b>📝 ข้อมูลผลงาน</b><small style="display:block;margin:4px 0 8px">แสดงในการ์ด ตารางเครดิต และหน้ารายละเอียด</small>
+  <label><small>ชื่อผลงาน</small><input class="inp" id="wmName" maxlength="80" style="width:100%"></label>
+  <div class="row2"><label style="flex:1 1 140px"><small>หมวด</small><select class="inp" id="wmCat" style="width:100%">${Object.entries(CAT).map(([k,v])=>`<option value="${k}" ${w.cat===k?'selected':''}>${v}</option>`).join('')}</select></label><label style="flex:1 1 140px"><small>ไอคอนพิกเซล</small><select class="inp" id="wmSp" style="width:100%">${SPRITES.map(k=>`<option ${w.sp===k?'selected':''}>${k}</option>`).join('')}</select></label><label style="flex:0 0 90px"><small>สีการ์ด</small><input class="inp" id="wmCol" type="color" value="${esc(w.col)}" style="width:100%;height:44px;padding:2px"></label></div>
   <div class="row2"><label style="flex:1 1 160px"><small>สถานะ</small><select class="inp" id="wmSt" style="width:100%">${Object.entries(STN).map(([k,v])=>`<option value="${k}" ${w.status===k?'selected':''}>${v}</option>`).join('')}</select></label><label style="flex:1 1 160px"><small>ความคืบหน้า: <b id="wmDv">${w.done}</b>%</small><input id="wmDone" type="range" min="0" max="100" step="5" value="${w.done}" style="width:100%"></label></div>
   <label><small>หน้าที่</small><input class="inp" id="wmRole" maxlength="120" style="width:100%"></label>
   <label><small>เครื่องมือ</small><input class="inp" id="wmTool" maxlength="120" style="width:100%"></label>
   <label><small>คำอธิบาย</small><textarea class="inp" id="wmDesc" maxlength="600" rows="3" style="width:100%;resize:vertical"></textarea></label>
-  <div class="row2" style="margin-top:6px"><button id="wmSave" type="button">บันทึกข้อมูล</button><button class="rm" id="wmReset" type="button">คืนค่าเดิม</button></div></div>
+  <div class="row2" style="margin-top:6px"><button id="wmSave" type="button">บันทึกข้อมูล</button><button class="rm" id="wmReset" type="button">คืนค่าเดิม</button><button class="rm" id="wmDelete" type="button" style="margin-left:auto;background:var(--red);color:#fff">🗑 ลบผลงานนี้</button></div></div>
  <div class="sec"><b>🔗 ลิงก์ไปเล่นเกม</b><small style="display:block;margin:4px 0 8px">เช่น ลิงก์หน้าเกม Roblox หรือเว็บที่เล่นเกม HTML ได้ (ต้องขึ้นต้นด้วย https://)</small>
   <div class="row2"><input class="inp" id="wlUrl" type="url" placeholder="https://..." value="${esc(L.play_url||'')}"><button id="wlSave" type="button">บันทึกลิงก์</button><button class="rm" id="wlDel" type="button" ${L.play_url?'':'disabled'}>ลบลิงก์</button></div></div>
  <div class="sec"><b>⬇ ไฟล์ดาวน์โหลดเกม</b><small style="display:block;margin:4px 0 8px">${L.file_path?'ไฟล์ปัจจุบัน: <span id="wlFn"></span> · '+fmtSize(L.file_size):'ยังไม่มีไฟล์'} · รับไฟล์ทุกชนิด (.zip, .exe, .apk, .html …) ไม่เกิน 50 MB</small>
   <div class="row2"><button id="wlUp" type="button">${L.file_path?'อัปไฟล์ใหม่แทน':'อัปโหลดไฟล์'}</button><button class="rm" id="wlRm" type="button" ${L.file_path?'':'disabled'}>ลบไฟล์</button></div>
   <div class="upbar" id="wlBar" hidden style="margin-top:8px"><i></i></div></div></div>`;
  if($('#wlFn'))$('#wlFn').textContent=L.file_name||'';
- $('#wmRole').value=w.role;$('#wmTool').value=w.tool;$('#wmDesc').value=w.desc;
+ $('#wmName').value=w.name;$('#wmRole').value=w.role;$('#wmTool').value=w.tool;$('#wmDesc').value=w.desc;
  $('#wmDone').oninput=()=>{$('#wmDv').textContent=$('#wmDone').value;if($('#wmDone').value==='100')$('#wmSt').value='done'};
- $('#wmSave').onclick=()=>saveMeta(w,{status:$('#wmSt').value,done:+$('#wmDone').value,role:$('#wmRole').value.trim().slice(0,120)||null,tool:$('#wmTool').value.trim().slice(0,120)||null,descr:$('#wmDesc').value.trim().slice(0,600)||null});
- $('#wmReset').onclick=()=>saveMeta(w,{status:null,done:null,role:null,tool:null,descr:null},true);
+ $('#wmSave').onclick=()=>saveMeta(w,{name:$('#wmName').value.trim().slice(0,80)||null,cat:$('#wmCat').value,sp:$('#wmSp').value,col:$('#wmCol').value,status:$('#wmSt').value,done:+$('#wmDone').value,role:$('#wmRole').value.trim().slice(0,120)||null,tool:$('#wmTool').value.trim().slice(0,120)||null,descr:$('#wmDesc').value.trim().slice(0,600)||null});
+ $('#wmReset').onclick=()=>saveMeta(w,CUSTOM[w.id]?{status:null,done:null,role:null,tool:null,descr:null}:{name:null,cat:null,sp:null,col:null,status:null,done:null,role:null,tool:null,descr:null},true);
+ $('#wmDelete').onclick=()=>deleteWork(w);
  $('#wlSave').onclick=()=>saveLink(w,$('#wlUrl').value.trim());
  $('#wlUrl').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveLink(w,$('#wlUrl').value.trim())}};
  $('#wlDel').onclick=()=>saveLink(w,'');
  $('#wlUp').onclick=()=>{if(gameBusy)return;gameTarget=w;const f=$('#gameIn');f.value='';f.click()};
  $('#wlRm').onclick=()=>removeGameFile(w)}
-async function upsertLink(w,patch){const cur=LINKS[w.id]||{work_id:w.id};const row=Object.assign({work_id:w.id,play_url:cur.play_url||null,file_path:cur.file_path||null,file_name:cur.file_name||null,file_size:cur.file_size||null,status:cur.status||null,done:Number.isInteger(cur.done)?cur.done:null,role:cur.role||null,tool:cur.tool||null,descr:cur.descr||null},patch,{updated_at:new Date().toISOString()});
+async function upsertLink(w,patch){const cur=LINKS[w.id]||{};const row=Object.assign({},cur,{work_id:w.id},patch,{updated_at:new Date().toISOString()});
  const {error}=await sb.from('work_links').upsert(row);if(error)throw error;LINKS[w.id]=row}
+function addWork(){if(!isAdmin())return;
+ openModal('เพิ่มผลงานใหม่',`<div class="gl"><label><small>ชื่อผลงาน</small><input class="inp" id="nwName" maxlength="80" style="width:100%" placeholder="เช่น เกมใหม่ของฉัน"></label><label><small>หมวด</small><select class="inp" id="nwCat" style="width:100%">${Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><small>สร้างแล้วจะเปิดหน้าแก้ไขให้ใส่รายละเอียด ลิงก์ และไฟล์ต่อ</small></div>`,[['ยกเลิก','alt'],['＋ สร้างผลงาน','',async()=>{
+  const name=(window.__nw&&window.__nw.name||'').trim().slice(0,80),cat=window.__nw&&window.__nw.cat||'other';if(!name){toast('ใส่ชื่อผลงานก่อน','');return}
+  const id='w'+rid().replace(/[^a-z0-9]/g,'').slice(0,20),w={id,feat:0};
+  try{await upsertLink(w,{custom:true,name,cat,col:{html:'#6b3fd1',roblox:'#2bb673',other:'#2d6cdf'}[cat],sp:{html:'sword',roblox:'egg',other:'gear'}[cat],status:'plan',done:0,sort:Date.now()/1000});applyMeta();toast('เพิ่มผลงานแล้ว',name);blip(990);setTimeout(()=>openWorkAdmin(id),0)}catch(e){toast('เพิ่มไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}}]]);
+ window.__nw={name:'',cat:'html'};$('#nwCat').value='html';$('#nwName').oninput=e=>window.__nw.name=e.target.value;$('#nwCat').onchange=e=>window.__nw.cat=e.target.value;setTimeout(()=>$('#nwName').focus(),50)}
+function deleteWork(w){if(!isAdmin())return;const custom=!!CUSTOM[w.id];
+ openModal('ลบ "'+w.name+'"?',`<p>${custom?'ผลงานนี้จะถูกลบถาวร พร้อมลิงก์ ไฟล์ดาวน์โหลด และภาพของผลงาน':'ผลงานนี้จะถูกเอาออกจากเว็บ (กู้คืนได้ภายหลังจากเมนู ADMIN แท็บ ผลงาน)'}</p>`,[['ยกเลิก','alt'],['🗑 ลบผลงาน','danger',async()=>{
+  try{const L=LINKS[w.id]||{};
+   if(custom){const {error}=await sb.from('work_links').delete().eq('work_id',w.id);if(error)throw error;delete LINKS[w.id];delete CUSTOM[w.id];if(okFile(L.file_path))sb.storage.from('games').remove([L.file_path]);const sl=cloudSlots['w:'+w.id];if(sl&&okPath(sl.path)){sb.from('site_images').delete().eq('slot','w:'+w.id);sb.storage.from('pc').remove([sl.path]);delete cloudSlots['w:'+w.id]}}
+   else await upsertLink(w,{hidden:true});
+   applyMeta();toast('ลบผลงานแล้ว',w.name);blip(440)}catch(e){toast('ลบไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}}]])}
+async function restoreWork(id){const w=BASE.find(x=>x.id===id);if(!w||!isAdmin())return;try{await upsertLink(w,{hidden:false});applyMeta();renderAdmin();toast('กู้คืนผลงานแล้ว',w.name)}catch(e){toast('กู้คืนไม่สำเร็จ',(e&&e.message||'').slice(0,120))}}
 async function saveMeta(w,patch,reset){if(!isAdmin())return;
  try{await upsertLink(w,patch);applyMeta();toast(reset?'คืนค่าข้อมูลเดิมแล้ว':'บันทึกข้อมูลแล้ว',w.name+' · '+STN[w.status]+' '+w.done+'%');blip(990)}catch(e){toast('บันทึกข้อมูลไม่สำเร็จ',(e&&e.message||'ลองใหม่อีกครั้ง').slice(0,120))}
  if($('#wmSave'))renderWorkAdmin(w)}
